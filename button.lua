@@ -138,7 +138,7 @@ function buttonMixin:UpdateFeatures()
     if not self.FeaturesFrame then return end
     
     -- Update Lock Button State
-    if self.lockedItemLink then
+    if self.inCombat or self.lockedItemLink then
         self.LockButton:SetChecked(true)
         self.LockButton:GetNormalTexture():SetVertexColor(1, 0.8, 0) -- Gold for locked
         self.LockButton:SetAlpha(1)
@@ -151,7 +151,7 @@ function buttonMixin:UpdateFeatures()
     -- Switch Button Visibility
     if self.lastNearbyItems and #self.lastNearbyItems > 1 then
         self.SwitchButton:Show()
-        if InCombatLockdown() then
+        if self.inCombat then
             self.SwitchButton:GetNormalTexture():SetDesaturated(true)
             self.SwitchButton:SetAlpha(0.5)
         else
@@ -299,7 +299,14 @@ function addon:CreateExtraButton(extraTemplates)
     
     LockButton:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-        GameTooltip:SetText(self:GetChecked() and "Unlock Quest Item" or "Lock Quest Item")
+        local button = self:GetParent():GetParent()
+        if button.inCombat then
+             GameTooltip:AddLine("Quest Item", 1, 1, 1)
+             GameTooltip:AddLine("Action locked in combat", 1, 0, 0)
+        else
+            GameTooltip:SetText(self:GetChecked() and "Unlock Quest Item" or "Lock Quest Item")
+        end
+        GameTooltip:Show()
     end)
     LockButton:SetScript('OnLeave', GameTooltip_Hide)
     LockButton:SetScript('OnClick', function(self)
@@ -326,7 +333,8 @@ function addon:CreateExtraButton(extraTemplates)
 
     SwitchButton:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-        if InCombatLockdown() then
+        local button = self:GetParent():GetParent()
+        if button.inCombat then
              GameTooltip:AddLine("Quick Switch", 1, 1, 1)
              GameTooltip:AddLine("Cannot switch in combat", 1, 0, 0)
         else

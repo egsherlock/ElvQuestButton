@@ -18,11 +18,14 @@ Inspired by the excellent [ExtraQuestButton](https://github.com/p3lim-wow/ExtraQ
     *   Applies the distinct WindTools "Shadow" and "Vignette" styles for a premium look consistent with your UI.
 *   **[NEW] Locking**:
     *   Lock the current quest item so it doesn't change automatically when you move around.
-    *   Click the **Lock Icon** (bottom-left) to toggle.
+    *   **Visuals**:
+        *   **Gold Lock**: Active.
+        *   **Grey Lock**: Inactive.
+        *   **Combat**: Automatically locks (Gold) to prevent taint.
 *   **[NEW] Quick Switch**:
     *   When multiple quest items are detected nearby, a **Switch Icon** (bottom-right) appears.
     *   Click to cycle through available items.
-    *   *Note: Disabled during combat to prevent taint - auto detection switching will still work.*
+    *   **Combat Safety**: Button desaturates (Grey) and becomes unclickable during combat to comply with protected action restrictions.
 
 ## 🚀 Installation & Usage
 

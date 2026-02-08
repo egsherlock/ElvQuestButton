@@ -104,6 +104,9 @@ function coreMixin:UpdateBinding()
 
         -- trigger a state update for the binding
         self:SetAttribute('binding', GetTime())
+        
+        -- Always listen for entering combat to update visuals (Switch/Lock icons)
+        self:RegisterEvent('PLAYER_REGEN_DISABLED')
     else
         addon:DeferMethod(self, 'UpdateBinding')
     end
@@ -143,6 +146,14 @@ end
 
 function coreMixin:UpdateState()
     if self.editing and not (self.testMode and self.lastNearbyItems) then
+        return
+    end
+
+    -- Strict Combat Safety: Do not update state during combat
+    if InCombatLockdown() then
+        if not self.needsAttributeUpdate then
+            self.needsAttributeUpdate = true
+        end
         return
     end
     
@@ -312,22 +323,9 @@ function coreMixin:UpdateAttributes()
         return
     end
 
-    -- Strict Combat Safety: Do not attempt to SetAttribute during combat
-    if InCombatLockdown() then
-        if not self.needsAttributeUpdate then
-            self.needsAttributeUpdate = true
-            -- Register event to retry when combat ends
-            self:RegisterEvent('PLAYER_REGEN_ENABLED')
-        end
-        return
-    end
+    -- Safety check: SetAttribute is protected
+    if InCombatLockdown() then return end
     
-    -- If we had a pending update and we're here, it means we are now out of combat
-    if self.needsAttributeUpdate then
-        self.needsAttributeUpdate = nil
-        self:UnregisterEvent('PLAYER_REGEN_ENABLED')
-    end
-
     if self:IsItemEmpty() then
         self:SetAttribute('item', nil)
         self:ClearCooldown()
@@ -339,11 +337,23 @@ end
 
 -- Adding Combat Regen handler to the mixin to catch the retry
 function coreMixin:PLAYER_REGEN_ENABLED()
-    self:UnregisterEvent('PLAYER_REGEN_ENABLED')
-    self:UpdateAttributes()
+    self.needsAttributeUpdate = nil
+    self.inCombat = false
+    -- Full state update to catch up on everything (logic, visuals, attributes)
+    self:UpdateState()
+end
+
+function coreMixin:PLAYER_REGEN_DISABLED()
+    -- Entered combat: Update visual features to show locked/disabled states
+    self.inCombat = true
+    if self.UpdateFeatures then
+        self:UpdateFeatures()
+    end
 end
 
 function coreMixin:SetItem(itemLink)
+    if InCombatLockdown() then return end
+    
     if not itemLink then
         return
     end

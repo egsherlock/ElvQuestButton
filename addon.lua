@@ -34,6 +34,9 @@ function button:OnLoad()
     -- Set action type
     self:SetAttribute('type', 'item')
     
+    -- Initialize combat state flag
+    self.inCombat = InCombatLockdown()
+    
     -- Register events for updating displayed data
     self:RegisterEvent('UPDATE_BINDINGS', self.UpdateBinding)
     self:RegisterEvent('BAG_UPDATE_DELAYED', self.UpdateCount)
@@ -59,6 +62,10 @@ function button:OnLoad()
     -- Update checked status
     self:RegisterEvent('CURRENT_SPELL_CAST_CHANGED', self.UpdateChecked)
     self:RegisterEvent('ACTIONBAR_UPDATE_STATE', self.UpdateChecked)
+
+    -- Combat Events for Lock/Switch visuals
+    self:RegisterEvent('PLAYER_REGEN_DISABLED', self.PLAYER_REGEN_DISABLED)
+    self:RegisterEvent('PLAYER_REGEN_ENABLED', self.PLAYER_REGEN_ENABLED)
 end
 
 -- Initialize button

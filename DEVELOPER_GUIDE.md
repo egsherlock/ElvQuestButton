@@ -27,12 +27,17 @@ This guide provides technical details for developers interested in contributing 
 ### 1. WoW 12.0 (Midnight) API & Combat Safety
 During development (Feb 2026), significant changes to the WoW API were introduced for the Midnight expansion, specifically targeting `SecureActionButtonTemplate`.
 
-*   **Strict Combat Taint**: Modifying attributes of a `SecureActionButton` (like `type`, `item`, or show/hide) during combat now causes stricter "Action Blocked" errors.
-*   **Solution**: We implemented a `PLAYER_REGEN_ENABLED` deferral system. If an update is triggered during combat (e.g., getting a new quest item), we:
-    1.  Check `InCombatLockdown()`.
-    2.  If true, set a flag `needsAttributeUpdate = true` and return immediately.
-    3.  Register `PLAYER_REGEN_ENABLED`.
-    4.  When combat ends, the event creates a safe environment to apply the pending update.
+### 1. WoW 12.0 (Midnight) API & Combat Safety
+During development (Feb 2026), significant changes to the WoW API were introduced for the Midnight expansion, preventing addons from querying real-time combat data directly ("Black Box" system).
+
+*   **Problem**: Functions like `InCombatLockdown()` and `C_Item.IsItemInRange()` may return obfuscated or delayed data during raid/dungeon encounters.
+*   **Solution: Event-Driven State Mirroring**:
+    1.  We initialize a local flag `self.inCombat` based on `InCombatLockdown()` at load.
+    2.  We listen for `PLAYER_REGEN_DISABLED` (Enter Combat) and `PLAYER_REGEN_ENABLED` (Leave Combat) to update this flag instantly.
+    3.  **UI Updates**: All visual logic (e.g., desaturating the switch button, locking the item) checks `self.inCombat` instead of the API.
+    4.  **Attribute Updates**: Actual secure attribute changes are deferred until `PLAYER_REGEN_ENABLED` fires.
+
+This dual approach ensures the UI feels responsive and accurate (using events) while the secure code remains safe (using deferrals).
 
 ### 2. "Secret Values"
 The 12.0 API introduced "Secret Values" to obfuscate certain data from addons to prevent combat automation. We carefully structured our detection logic (in `core.lua`) to avoid relying on protected values for critical decision-making paths that feed into `SetAttribute`.
