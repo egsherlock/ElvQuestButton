@@ -1,4 +1,4 @@
 <Bindings>
-	<Binding name='EXTRAQUESTBUTTON' category='ADDONS' header='EXTRAQUESTBUTTON'>
+	<Binding name='ELVQUESTBUTTON' category='ADDONS' header='ELVQUESTBUTTON'>
 	</Binding>
 </Bindings>

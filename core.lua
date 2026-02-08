@@ -1,0 +1,280 @@
+--[[
+    ElvQuestButton - Core Quest Logic
+    
+    This file contains all the quest item detection and management logic,
+    completely separated from UI concerns (positioning, skinning, etc.)
+    
+    Extracted from the original ExtraQuestButton by p3lim.
+]]
+
+local addonName, addon = ...
+
+local L = addon.L
+local data = addon.data
+
+-- Default settings (shared between ElvUI and standalone modes)
+addon.DEFAULTS = {
+    position = {
+        point = 'CENTER',
+        x = 0,
+        y = 0,
+    },
+    scale = 1,
+    artworkAlpha = 1,
+    artworkStyle = 'Default',
+    noCooldownText = false,
+    trackingOnly = false,
+    zoneOnly = false,
+    distanceYd = 1000,
+}
+
+-- Attribute handler for secure button behavior
+addon.ATTRIBUTE_HANDLER = [[
+    local bindingParent = '%s'
+
+    if name == 'item' then
+        -- update when the item attribute changes
+        if value and not self:IsShown() and not (bindingParent == 'EXTRAACTIONBUTTON1' and HasExtraActionBar()) then
+            self:Show()
+        elseif not value then
+            self:Hide()
+            self:ClearBindings()
+        end
+    elseif name == 'state-visible' then
+        -- there is (or was) a pet battle
+        if value == 'show' and self:GetAttribute('item') ~= nil then
+            -- trigger an update to check if we should show an item
+            self:Show()
+            self:CallMethod('UpdateState')
+        else
+            self:Hide()
+            self:ClearBindings()
+            self:SetAttribute('item', nil) -- avoid ghost clicks
+        end
+    end
+
+    if self:IsShown() then
+        self:ClearBindings()
+
+        local key1, key2 = GetBindingKey(bindingParent)
+        if key1 then
+            self:SetBindingClick(1, key1, self, 'LeftButton')
+        end
+        if key2 then
+            self:SetBindingClick(2, key2, self, 'LeftButton')
+        end
+    end
+]]
+
+--[[
+    Core Quest Logic Methods
+    These are mixed into the button frame in addon.lua
+]]
+
+local coreMixin = {}
+
+function coreMixin:UpdateBinding()
+    if self.editing then
+        return
+    end
+
+    if not InCombatLockdown() then
+        local keyButton = addonName:upper()
+        local key1 = GetBindingKey(keyButton)
+        if not key1 then
+            keyButton = 'EXTRAACTIONBUTTON1'
+            key1 = GetBindingKey(keyButton)
+        end
+
+        -- update hotkey text
+        self:SetHotKey(key1 and GetBindingText(key1, 1))
+
+        -- reset state driver
+        UnregisterStateDriver(self, 'visible')
+
+        -- update state driver
+        if keyButton == addonName:upper() then
+            RegisterStateDriver(self, 'visible', '[petbattle] hide; show')
+        else
+            RegisterStateDriver(self, 'visible', '[extrabar][petbattle] hide; show')
+        end
+
+        -- update attribute handler
+        self:SetAttribute('_onattributechanged', addon.ATTRIBUTE_HANDLER:format(keyButton))
+
+        -- trigger a state update for the binding
+        self:SetAttribute('binding', GetTime())
+    else
+        addon:DeferMethod(self, 'UpdateBinding')
+    end
+end
+
+function coreMixin:UpdateCount()
+    if self.editing then
+        return
+    end
+
+    if not self:IsItemEmpty() then
+        -- update count
+        local count = C_Item.GetItemCount(self:GetItemLink())
+        self:SetCount(count)
+
+        if count == 0 then
+            -- player ran out of items, update the state
+            self:UpdateState()
+        end
+    end
+end
+
+function coreMixin:UpdateCooldown()
+    if self.editing then
+        return
+    end
+
+    if not self:IsItemEmpty() then
+        local start, duration = C_Item.GetItemCooldown(self:GetItemID())
+        if duration > 0 then
+            self:SetCooldown(start, duration)
+        else
+            self:ClearCooldown()
+        end
+    end
+end
+
+function coreMixin:UpdateState()
+    if self.editing then
+        return
+    end
+
+    local itemLink = self:GetTargetItem()
+    if not itemLink then
+        -- Get settings from wherever they're stored (ElvUI or standalone)
+        local settings = addon:GetCurrentSettings()
+        if settings then
+            itemLink = addon:GetClosestQuestItem(settings.distanceYd, settings.zoneOnly, settings.trackingOnly)
+        end
+    end
+
+    if itemLink then
+        if itemLink ~= self:GetItemLink() then
+            self:SetItem(itemLink)
+        end
+    elseif self:IsShown() then
+        self:Reset()
+    end
+end
+
+function coreMixin:UpdateTarget()
+    if self.editing then
+        return
+    end
+
+    local npcID
+    if UnitCreatureID then
+        npcID = UnitCreatureID('target')
+        if npcID ~= nil and issecretvalue(npcID) then
+            npcID = nil
+        end
+    else
+        npcID = addon:GetUnitID('target')
+    end
+
+    if npcID then
+        local targetItemID = data.targetItems[npcID]
+        if targetItemID then
+            if C_Item.GetItemCount(targetItemID) > 0 then
+                self:SetTargetItem(targetItemID)
+                self:UpdateState()
+                return
+            end
+        end
+    end
+
+    if self:GetTargetItem() then
+        -- there's no npc ID or valid target item, time to reset
+        self:SetTargetItem()
+        self:UpdateState()
+    end
+end
+
+function coreMixin:SetTargetItem(itemID)
+    if self.editing then
+        return
+    end
+
+    if itemID then
+        -- need to turn this into an item link
+        local _, itemLink = C_Item.GetItemInfo(itemID)
+        itemID = itemLink
+    end
+
+    self.targetItem = itemID
+end
+
+function coreMixin:GetTargetItem()
+    return self.targetItem
+end
+
+function coreMixin:UpdateAttributes()
+    if self.editing then
+        return
+    end
+
+    if self:IsItemEmpty() then
+        self:SetAttribute('item', nil)
+        self:ClearCooldown()
+    else
+        self:SetAttribute('item', 'item:' .. self:GetItemID())
+        self:UpdateCooldown()
+    end
+end
+
+function coreMixin:SetItem(itemLink)
+    if not itemLink then
+        return
+    end
+
+    self:SetItemLink(itemLink)
+    self:SetIcon(self:GetItemIcon()) -- we're going to assume it's already loaded since it's a link
+    self:EnableUpdateRange(C_Item.ItemHasRange(itemLink))
+
+    addon:DeferMethod(self, 'UpdateAttributes')
+    self:UpdateCount()
+end
+
+function coreMixin:Reset()
+    if self.editing then
+        return
+    end
+
+    self:Clear()
+    self:EnableUpdateRange(false)
+
+    addon:DeferMethod(self, 'UpdateAttributes')
+end
+
+function coreMixin:OnEnter()
+    if KeybindFrames_InQuickKeybindMode() then
+        QuickKeybindButtonTemplateMixin.QuickKeybindButtonOnEnter(self)
+    else
+        local itemLink = self:GetItemLink()
+        if itemLink then
+            GameTooltip:SetOwner(self, 'ANCHOR_LEFT')
+            GameTooltip:SetHyperlink(itemLink)
+        end
+    end
+end
+
+function coreMixin:OnLeave()
+    QuickKeybindButtonTemplateMixin.QuickKeybindButtonOnLeave(self)
+    GameTooltip_Hide(self)
+end
+
+-- Export the mixin
+addon.coreMixin = coreMixin
+
+-- Settings accessor (overridden by ElvUI or standalone modules)
+function addon:GetCurrentSettings()
+    -- Default implementation - will be overridden
+    return addon.DEFAULTS
+end

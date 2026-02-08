@@ -1,27 +1,38 @@
-## Interface: 120000, 120001
-## Author: p3lim
-## Version: 120000.66-Release
-## Title: ExtraQuestButton
-## Notes: An extra button for quest items!
+## Interface: 120000
+## Author: p3lim (ElvUI integration by Sherlockell)
+## Version: 1.0.0
+## Title: ElvQuestButton
+## Notes: Quest item button with ElvUI integration
 ## IconTexture: Interface\Icons\inv_gizmo_goblingtonkcontroller
-## SavedVariables: ExtraQuestButtonDB3
+## SavedVariables: ElvQuestButtonDB
 ## OptionalDeps: LibStub, HereBeDragons, Masque, ElvUI, ElvUI_WindTools
 
 ## X-Curse-Project-ID: 88865
 ## X-WoWI-ID: 23464
 ## X-Wago-ID: XrNkYjKa
 
+# Libraries
 libs\Dashi\embed.xml
 libs\LibStub\LibStub.lua
 libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
 libs\LibEditMode\embed.xml
 libs\HereBeDragons\HereBeDragons-2.0.lua
 
+# Localization
 locale\[TextLocale].lua [AllowLoadTextLocale deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW]
 
+# Core (UI-agnostic quest logic)
 data.lua
 button.lua
 utils.lua
+core.lua
 addon.lua
 
-Skins\ElvUI_WindTools.lua
+# Standalone fallback (non-ElvUI)
+standalone.lua
+
+# ElvUI Integration (only initializes if ElvUI present)
+ElvUI\init.lua
+ElvUI\core.lua
+ElvUI\options.lua
+ElvUI\shadow.lua
