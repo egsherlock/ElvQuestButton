@@ -53,7 +53,7 @@ You can adjust:
 *   **p3lim**: Author of the original [ExtraQuestButton](https://github.com/p3lim-wow/ExtraQuestButton), from which the core quest detection logic is derived.
 *   **Sherlockell**: Author of this ElvUI integration and extended feature set.
 *   **ElvUI Team**: For the amazing UI framework.
-*   **WindTools Team**: For the beautiful aesthetic inspiration.
+*   **fang2hou**: For the design inspiration and the Windtools addon.
 
 ## 📄 License
 MIT License. See LICENSE for details.
