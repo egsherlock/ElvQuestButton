@@ -88,7 +88,14 @@ _G['BINDING_HEADER_' .. addonName:upper()] = addonName
 _G['BINDING_NAME_' .. addonName:upper()] = addonName
 
 -- Slash command
-addon:RegisterSlash('/eqb', function()
+addon:RegisterSlash('/eqb', function(msg)
+    if msg == 'test' or msg == 'multi' then
+         if addon.ElvUIModule then
+            addon.ElvUIModule:ToggleTestMode(msg)
+         end
+         return
+    end
+
     if button.elvuiManaged then
         addon:Print('Configure in ElvUI settings: /ec')
     else

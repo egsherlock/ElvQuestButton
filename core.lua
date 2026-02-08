@@ -142,18 +142,59 @@ function coreMixin:UpdateCooldown()
 end
 
 function coreMixin:UpdateState()
-    if self.editing then
+    if self.editing and not (self.testMode and self.lastNearbyItems) then
         return
     end
-
+    
+    -- If locked item is effectively gone (quest complete, left area), we should unlock
+    -- But we need to check if it's still "nearby" to decide
+    
     local itemLink = self:GetTargetItem()
+    local nearbyItems
+    
     if not itemLink then
         -- Get settings from wherever they're stored (ElvUI or standalone)
         local settings = addon:GetCurrentSettings()
         if settings then
-            itemLink = addon:GetClosestQuestItem(settings.distanceYd, settings.zoneOnly, settings.trackingOnly)
+             -- Get ALL nearby items
+             if self.testMode and self.lastNearbyItems then
+                 nearbyItems = self.lastNearbyItems
+             else
+                 nearbyItems = addon:GetNearbyQuestItems(settings.distanceYd, settings.zoneOnly, settings.trackingOnly)
+             end
+            
+            if nearbyItems and #nearbyItems > 0 then
+                -- Check if we have a locked item
+                if self.lockedItemLink then
+                    local found = false
+                    for _, link in ipairs(nearbyItems) do
+                        if link == self.lockedItemLink then
+                            found = true
+                            break
+                        end
+                    end
+                    
+                    if found then
+                        itemLink = self.lockedItemLink
+                    else
+                        -- Locked item is no longer valid, unlock and take closest
+                        self:SetLockedItem(nil)
+                        itemLink = nearbyItems[1]
+                    end
+                else
+                    -- No lock (or just unlocked), take closest
+                    itemLink = nearbyItems[1]
+                end
+            elseif self.lockedItemLink then
+                -- No items found at all, but we had a lock.
+                -- This implies the locked item is gone too.
+                self:SetLockedItem(nil)
+            end
         end
     end
+    
+    -- Cache the nearby items list for the Switch feature to use
+    self.lastNearbyItems = nearbyItems
 
     if itemLink then
         if itemLink ~= self:GetItemLink() then
@@ -161,6 +202,57 @@ function coreMixin:UpdateState()
         end
     elseif self:IsShown() then
         self:Reset()
+    end
+    
+    -- Update UI bits (Lock/Switch buttons)
+    if self.UpdateFeatures then
+        self:UpdateFeatures()
+    end
+end
+
+function coreMixin:ToggleLock()
+    -- Locking is safe in combat (just a flag)
+    if not self:GetItemLink() then return end
+    
+    if self.lockedItemLink then
+        self:SetLockedItem(nil)
+    else
+        self:SetLockedItem(self:GetItemLink())
+    end
+    -- Force update immediately to revert to closest if unlocking, or confirm lock
+    self:UpdateState()
+end
+
+function coreMixin:SetLockedItem(itemLink)
+    self.lockedItemLink = itemLink
+    -- Visual update handled by UpdateFeatures calls
+end
+
+function coreMixin:SwitchItem()
+    -- Switching is NOT safe in combat
+    if InCombatLockdown() then return end
+    
+    if not self.lastNearbyItems or #self.lastNearbyItems < 2 then return end
+    
+    local current = self.lockedItemLink or self:GetItemLink()
+    if not current then return end
+    
+    local nextItem
+    for i, link in ipairs(self.lastNearbyItems) do
+        if link == current then
+            nextItem = self.lastNearbyItems[i+1]
+            break
+        end
+    end
+    
+    -- Wrap around
+    if not nextItem then
+        nextItem = self.lastNearbyItems[1]
+    end
+    
+    if nextItem then
+        self:SetLockedItem(nextItem)
+        self:UpdateState()
     end
 end
 
@@ -220,6 +312,22 @@ function coreMixin:UpdateAttributes()
         return
     end
 
+    -- Strict Combat Safety: Do not attempt to SetAttribute during combat
+    if InCombatLockdown() then
+        if not self.needsAttributeUpdate then
+            self.needsAttributeUpdate = true
+            -- Register event to retry when combat ends
+            self:RegisterEvent('PLAYER_REGEN_ENABLED')
+        end
+        return
+    end
+    
+    -- If we had a pending update and we're here, it means we are now out of combat
+    if self.needsAttributeUpdate then
+        self.needsAttributeUpdate = nil
+        self:UnregisterEvent('PLAYER_REGEN_ENABLED')
+    end
+
     if self:IsItemEmpty() then
         self:SetAttribute('item', nil)
         self:ClearCooldown()
@@ -227,6 +335,12 @@ function coreMixin:UpdateAttributes()
         self:SetAttribute('item', 'item:' .. self:GetItemID())
         self:UpdateCooldown()
     end
+end
+
+-- Adding Combat Regen handler to the mixin to catch the retry
+function coreMixin:PLAYER_REGEN_ENABLED()
+    self:UnregisterEvent('PLAYER_REGEN_ENABLED')
+    self:UpdateAttributes()
 end
 
 function coreMixin:SetItem(itemLink)

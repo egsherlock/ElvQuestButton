@@ -172,7 +172,7 @@ local function addPrioritizedItem(questID, maxDistanceYd)
 	end
 end
 
-function addon:GetClosestQuestItem(maxDistanceYd, zoneOnly, trackingOnly)
+function addon:GetNearbyQuestItems(maxDistanceYd, zoneOnly, trackingOnly)
 	table.wipe(prioritizedItemLinks)
 	table.wipe(uniqueItems)
 
@@ -204,15 +204,24 @@ function addon:GetClosestQuestItem(maxDistanceYd, zoneOnly, trackingOnly)
 		end
 	end
 
+	-- Flatten the prioritized list into a single array
+	local allItems = {}
 	for _, items in next, prioritizedItemLinks do
 		if #items > 0 then
 			if #items > 1 then
 				table.sort(items, sortByClosestDistance)
 			end
-
-			for _, itemInfo in next, items do
-				return itemInfo[1]
+			
+			for _, itemInfo in ipairs(items) do
+				table.insert(allItems, itemInfo[1])
 			end
 		end
 	end
+	
+	return allItems
+end
+
+function addon:GetClosestQuestItem(maxDistanceYd, zoneOnly, trackingOnly)
+	local items = self:GetNearbyQuestItems(maxDistanceYd, zoneOnly, trackingOnly)
+	return items and items[1]
 end

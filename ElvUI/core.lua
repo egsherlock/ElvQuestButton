@@ -152,6 +152,31 @@ function EQB:SkinButton(button)
         E:RegisterCooldown(button.Cooldown, 'actionbar')
     end
     
+    -- Skin Features Frame Buttons
+    if button.LockButton then
+        -- Desaturate and colorize for clean look
+        local lockTex = button.LockButton:GetNormalTexture()
+        if lockTex then
+            lockTex:SetDesaturated(true)
+            lockTex:SetVertexColor(0.6, 0.6, 0.6)
+        end
+        
+        -- Hook update to maintain styling
+        hooksecurefunc(button, 'UpdateFeatures', function()
+             -- Re-apply ElvUI specific colors if needed, 
+             -- though button.lua already handles basic coloring.
+             -- We can make it cleaner here if desired.
+        end)
+    end
+    
+    if button.SwitchButton then
+        -- Cleaner look for switch button
+         local switchTex = button.SwitchButton:GetNormalTexture()
+         if switchTex then
+             switchTex:SetDesaturated(true)
+         end
+    end
+
     button.__elvuiSkinned = true
     Debug("Button skinned")
 end
@@ -254,14 +279,15 @@ end
     Useful for verifying skinning, shadows, and positioning.
 ]]
 
-function EQB:ToggleTestMode()
+function EQB:ToggleTestMode(mode)
     local button = _G.ElvQuestButton or _G[addonName]
     if not button then return end
     
-    if button.testMode then
+    if button.testMode and not mode then
         -- Disable test mode
         button.testMode = nil
         button.editing = false
+        button.lastNearbyItems = nil -- clear test items
         
         -- Reset icon
         button:SetIcon(nil)
@@ -290,6 +316,33 @@ function EQB:ToggleTestMode()
         button:ClearCooldown()
         button:SetCount(0)
         button:Show()
+        
+        -- Mock Multi-Item Mode
+        if mode == 'multi' then
+             button.lastNearbyItems = {
+                 'item:1', -- Fake links
+                 'item:2',
+                 'item:3'
+             }
+             -- Override SetItem to just change the icon for visual feeback
+             button.SetItem = function(self, link)
+                 if link == 'item:1' then self:SetIcon([[Interface\Icons\INV_Misc_QuestionMark]])
+                 elseif link == 'item:2' then self:SetIcon([[Interface\Icons\INV_ChooseExclamation]])
+                 elseif link == 'item:3' then self:SetIcon([[Interface\Icons\INV_Misc_Coin_17]]) end
+                 -- self.targetItem = link -- Removed to prevent breaking UpdateState logic
+                 self:UpdateFeatures()
+             end
+             -- Override GetItemLink to return our fake link
+             button.GetItemLink = function(self)
+                 return self.targetItem
+             end
+             
+             -- Trigger initial item
+             button:SetItem('item:1')
+             Debug("Test mode enabled (Multi-Item)")
+        else
+            Debug("Test mode enabled")
+        end
         
         -- Ensure skinning is applied
         if not button.__elvuiSkinned then
@@ -322,8 +375,6 @@ function EQB:ToggleTestMode()
                 self:ApplyShadow()
             end
         end)
-        
-        Debug("Test mode enabled")
     end
     
     return button.testMode

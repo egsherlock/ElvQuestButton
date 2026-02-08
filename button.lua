@@ -134,6 +134,37 @@ function buttonMixin:UpdateChecked()
 	end
 end
 
+function buttonMixin:UpdateFeatures()
+    if not self.FeaturesFrame then return end
+    
+    -- Update Lock Button State
+    if self.lockedItemLink then
+        self.LockButton:SetChecked(true)
+        self.LockButton:GetNormalTexture():SetVertexColor(1, 0.8, 0) -- Gold for locked
+        self.LockButton:SetAlpha(1)
+    else
+        self.LockButton:SetChecked(false)
+        self.LockButton:GetNormalTexture():SetVertexColor(0.7, 0.7, 0.7) -- Grey for unlocked
+         self.LockButton:SetAlpha(0.6)
+    end
+    
+    -- Switch Button Visibility
+    if self.lastNearbyItems and #self.lastNearbyItems > 1 then
+        self.SwitchButton:Show()
+        if InCombatLockdown() then
+            self.SwitchButton:GetNormalTexture():SetDesaturated(true)
+            self.SwitchButton:SetAlpha(0.5)
+        else
+            self.SwitchButton:GetNormalTexture():SetDesaturated(false)
+            self.SwitchButton:SetAlpha(1)
+        end
+    else
+        self.SwitchButton:Hide()
+    end
+    
+    self.FeaturesFrame:Show()
+end
+
 function buttonMixin:GetItemLink()
 	-- stub
 end
@@ -240,6 +271,75 @@ function addon:CreateExtraButton(extraTemplates)
 			Pushed = PushedTexture,
 		})
 	end
+
+	-- Features Frame (Lock & Switch)
+	local FeaturesFrame = CreateFrame('Frame', '$parentFeatures', Button)
+	FeaturesFrame:SetSize(52, 20)
+	FeaturesFrame:SetPoint('TOP', Button, 'BOTTOM', 0, -2)
+	Button.FeaturesFrame = FeaturesFrame
+
+	-- Lock Button
+	local LockButton = CreateFrame('CheckButton', '$parentLock', FeaturesFrame)
+	LockButton:SetSize(16, 16)
+	LockButton:SetPoint('LEFT', FeaturesFrame, 'LEFT', 8, 0)
+	
+	local LockTexture = LockButton:CreateTexture(nil, 'ARTWORK')
+	LockTexture:SetAllPoints()
+	LockTexture:SetTexture([[Interface\PetBattles\PetBattle-LockIcon]]) -- Standard lock icon
+	LockTexture:SetTexCoord(0.05, 0.95, 0.05, 0.95)
+	LockButton:SetNormalTexture(LockTexture)
+
+	local LockHighlight = LockButton:CreateTexture(nil, 'HIGHLIGHT')
+	LockHighlight:SetAllPoints()
+	LockHighlight:SetTexture([[Interface\Buttons\UI-Common-MouseHilight]])
+	LockHighlight:SetBlendMode('ADD')
+	
+	-- Checked state (Locked) logic is handled by changing the vertex color/alpha or icon if needed
+    -- For now, we'll just toggle the check state
+    
+    LockButton:SetScript('OnEnter', function(self)
+        GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+        GameTooltip:SetText(self:GetChecked() and "Unlock Quest Item" or "Lock Quest Item")
+    end)
+    LockButton:SetScript('OnLeave', GameTooltip_Hide)
+    LockButton:SetScript('OnClick', function(self)
+        Button:ToggleLock()
+    end)
+    
+	Button.LockButton = LockButton
+
+	-- Switch Button
+	local SwitchButton = CreateFrame('Button', '$parentSwitch', FeaturesFrame)
+	SwitchButton:SetSize(16, 16)
+	SwitchButton:SetPoint('RIGHT', FeaturesFrame, 'RIGHT', -8, 0)
+	
+	local SwitchTexture = SwitchButton:CreateTexture(nil, 'ARTWORK')
+	SwitchTexture:SetAllPoints()
+	SwitchTexture:SetTexture([[Interface\Buttons\UI-RefreshButton]])
+    SwitchTexture:SetTexCoord(0, 1, 0, 1)
+	SwitchButton:SetNormalTexture(SwitchTexture)
+	
+	local SwitchHighlight = SwitchButton:CreateTexture(nil, 'HIGHLIGHT')
+	SwitchHighlight:SetAllPoints()
+	SwitchHighlight:SetTexture([[Interface\Buttons\UI-Common-MouseHilight]])
+	SwitchHighlight:SetBlendMode('ADD')
+
+    SwitchButton:SetScript('OnEnter', function(self)
+        GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+        if InCombatLockdown() then
+             GameTooltip:AddLine("Quick Switch", 1, 1, 1)
+             GameTooltip:AddLine("Cannot switch in combat", 1, 0, 0)
+        else
+            GameTooltip:SetText("Switch Quest Item")
+        end
+        GameTooltip:Show()
+    end)
+    SwitchButton:SetScript('OnLeave', GameTooltip_Hide)
+    SwitchButton:SetScript('OnClick', function(self)
+        Button:SwitchItem()
+    end)
+	
+	Button.SwitchButton = SwitchButton
 
 	return Button
 end
