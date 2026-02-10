@@ -25,9 +25,6 @@ This guide provides technical details for developers interested in contributing 
 ## 💡 Key Learnings & Technical Hurdles
 
 ### 1. WoW 12.0 (Midnight) API & Combat Safety
-During development (Feb 2026), significant changes to the WoW API were introduced for the Midnight expansion, specifically targeting `SecureActionButtonTemplate`.
-
-### 1. WoW 12.0 (Midnight) API & Combat Safety
 During development (Feb 2026), significant changes to the WoW API were introduced for the Midnight expansion, preventing addons from querying real-time combat data directly ("Black Box" system).
 
 *   **Problem**: Functions like `InCombatLockdown()` and `C_Item.IsItemInRange()` may return obfuscated or delayed data during raid/dungeon encounters.
@@ -49,8 +46,13 @@ Testing quest items without being in a specific zone is difficult. We implemente
 *   Overrides `GetItemLink` and `SetItem` on the button instance temporarily.
 *   Allows UI verification of Locking/Switching logic anywhere in the world.
 
-### 4. ElvUI Skinning & WindTools
 Integrating with WindTools requires precise frame parenting. The "Shadow" frame must be parented to `button.backdrop` (if it exists) or the button itself, and its frame level must be managed carefully to appear *behind* the button content but *above* the background.
+
+### 5. ElvUI Initialization Timing & Defaults
+A critical race condition exists when ElvUI modules initialize. ElvUI loads its database (`E.db`) very early, but modules often initialize slightly later (delayed after `PLAYER_LOGIN`) to ensure other dependencies are ready.
+
+*   **The Trap**: Relying solely on a module's `Initialized` flag in your settings accessor (e.g., `addon:GetCurrentSettings()`) is risky. If an event fires (like a button click) before the module flags itself ready, the accessor might fall back to hardcoded `DEFAULTS`.
+*   **The Fix**: In `ElvUI/init.lua`, we modified the accessor to peek directly at `E.db.elvQuestButton` as a priority fallback. If the table exists in ElvUI's DB, we use it immediately, regardless of the module's internal state. This prevents settings from silently reverting to defaults during startup or reload.
 
 ## 🤝 Contributing
 1.  Fork the repo.
