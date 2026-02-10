@@ -129,8 +129,26 @@ function EQB:InsertOptions()
                             self:GetDB().zoneOnly = value
                         end,
                     },
-                    distanceYd = {
+                    autoLockOnUse = {
                         order = 3,
+                        type = 'toggle',
+                        name = "Auto-Lock After Use",
+                        desc = "Automatically lock the quest item after clicking it, so it won't swap to a different item. Unlocks when the quest completes or you leave the area.",
+                        get = function() return self:GetDB().autoLockOnUse == true end,
+                        set = function(_, value)
+                            self:GetDB().autoLockOnUse = value and true or false
+                            -- If turning off, also unlock any currently locked item
+                            if not value then
+                                local btn = _G.ElvQuestButton or _G[addonName]
+                                if btn and btn.lockedItemLink and not btn.inCombat then
+                                    btn:SetLockedItem(nil)
+                                    btn:UpdateState()
+                                end
+                            end
+                        end,
+                    },
+                    distanceYd = {
+                        order = 4,
                         type = 'range',
                         name = "Tracking Distance",
                         desc = "Maximum distance in yards to show quest items",

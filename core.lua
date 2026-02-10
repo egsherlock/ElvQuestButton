@@ -26,6 +26,7 @@ addon.DEFAULTS = {
     trackingOnly = false,
     zoneOnly = false,
     distanceYd = 1000,
+    autoLockOnUse = true,
 }
 
 -- Attribute handler for secure button behavior

@@ -28,6 +28,7 @@ local moduleDefaults = {
     zoneOnly = false,
     distanceYd = 1000,
     inheritGlobalFade = false,
+    autoLockOnUse = true,
 }
 
 -- Add to ElvUI profile defaults
@@ -120,6 +121,12 @@ function addon:GetCurrentSettings()
     if EQB.initialized then
         return EQB:GetDB()
     end
+    
+    -- Fallback: If ElvUI is loaded and DB exists, use it even if not fully initialized
+    if E and E.db and E.db.elvQuestButton then
+        return E.db.elvQuestButton
+    end
+    
     return addon.DEFAULTS
 end
 

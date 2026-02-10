@@ -18,6 +18,7 @@ Inspired by the excellent [ExtraQuestButton](https://github.com/p3lim-wow/ExtraQ
     *   Applies the distinct WindTools "Shadow" and "Vignette" styles for a premium look consistent with your UI.
 *   **[NEW] Locking**:
     *   Lock the current quest item so it doesn't change automatically when you move around.
+    *   **Auto-Lock After Use** (on by default): Clicking the quest item automatically locks it, so it stays put while you continue the quest. Unlocks when the quest completes or you leave the area.
     *   **Visuals**:
         *   **Gold Lock**: Active.
         *   **Grey Lock**: Inactive.
@@ -46,6 +47,7 @@ Start by opening the ElvUI config:
 You can adjust:
 *   **Scale**: Resize the button.
 *   **Alpha**: Adjust transparency.
+*   **Auto-Lock After Use**: Toggle automatic locking when you click the button (on by default).
 *   **Combat Visibility**: Hide/Show in combat.
 
 ## 🤝 Credits

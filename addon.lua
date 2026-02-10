@@ -71,6 +71,22 @@ end
 -- Initialize button
 button:OnLoad()
 
+-- Auto-lock quest item after use (PostClick fires after secure action completes)
+button:HookScript('PostClick', function(self)
+    -- Guard: only auto-lock if the setting is explicitly enabled
+    local settings = addon:GetCurrentSettings()
+    if not settings then return end
+    if settings.autoLockOnUse ~= true then return end
+
+    local link = self:GetItemLink()
+    if link and not self.lockedItemLink then
+        self:SetLockedItem(link)
+        if self.UpdateFeatures then
+            self:UpdateFeatures()
+        end
+    end
+end)
+
 --[[
     Mode Detection
     
