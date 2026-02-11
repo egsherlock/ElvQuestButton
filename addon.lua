@@ -45,16 +45,29 @@ function button:OnLoad()
     -- Update every 2 seconds for the distance check (polling for performance)
     C_Timer.NewTicker(2, function() button:UpdateState() end)
     
-    -- Quest and tracking related events
-    self:RegisterEvent('QUEST_LOG_UPDATE', self.UpdateState)
-    self:RegisterEvent('QUEST_POI_UPDATE', self.UpdateState)
-    self:RegisterEvent('QUEST_WATCH_LIST_CHANGED', self.UpdateState)
-    self:RegisterEvent('ZONE_CHANGED', self.UpdateState)
-    self:RegisterEvent('ZONE_CHANGED_NEW_AREA', self.UpdateState)
-    self:RegisterEvent('PLAYER_INSIDE_QUEST_BLOB_STATE_CHANGED', self.UpdateState)
-    self:RegisterEvent('WAYPOINT_UPDATE', self.UpdateState)
-    self:RegisterEvent('BAG_UPDATE_DELAYED', self.UpdateState)
-    self:RegisterUnitEvent('UNIT_AURA', 'player', self.UpdateState)
+    -- Throttled update: coalesces multiple same-frame events into one UpdateState
+    -- This prevents redundant quest log iterations when e.g. QUEST_LOG_UPDATE,
+    -- BAG_UPDATE_DELAYED, and ZONE_CHANGED all fire in the same frame.
+    function self:ScheduleUpdate()
+        if not self._updateScheduled then
+            self._updateScheduled = true
+            C_Timer.After(0, function()
+                self._updateScheduled = nil
+                self:UpdateState()
+            end)
+        end
+    end
+    
+    -- Quest and tracking related events (throttled via ScheduleUpdate)
+    self:RegisterEvent('QUEST_LOG_UPDATE', self.ScheduleUpdate)
+    self:RegisterEvent('QUEST_POI_UPDATE', self.ScheduleUpdate)
+    self:RegisterEvent('QUEST_WATCH_LIST_CHANGED', self.ScheduleUpdate)
+    self:RegisterEvent('ZONE_CHANGED', self.ScheduleUpdate)
+    self:RegisterEvent('ZONE_CHANGED_NEW_AREA', self.ScheduleUpdate)
+    self:RegisterEvent('PLAYER_INSIDE_QUEST_BLOB_STATE_CHANGED', self.ScheduleUpdate)
+    self:RegisterEvent('WAYPOINT_UPDATE', self.ScheduleUpdate)
+    self:RegisterEvent('BAG_UPDATE_DELAYED', self.ScheduleUpdate)
+    self:RegisterUnitEvent('UNIT_AURA', 'player', self.ScheduleUpdate)
     
     -- Some items are used directly on targets
     self:RegisterEvent('PLAYER_TARGET_CHANGED', self.UpdateTarget)

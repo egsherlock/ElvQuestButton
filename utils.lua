@@ -153,6 +153,7 @@ end
 
 local uniqueItems = {}
 local prioritizedItemLinks = {}
+local allItems = {}
 local function addPrioritizedItem(questID, maxDistanceYd)
 	local distance, itemLink = GetQuestDistanceWithItem(questID, maxDistanceYd)
 	local priorityIndex = GetItemPriority(itemLink)
@@ -204,8 +205,8 @@ function addon:GetNearbyQuestItems(maxDistanceYd, zoneOnly, trackingOnly)
 		end
 	end
 
-	-- Flatten the prioritized list into a single array
-	local allItems = {}
+	-- Flatten the prioritized list into a single array (reuse file-scope table)
+	table.wipe(allItems)
 	for _, items in next, prioritizedItemLinks do
 		if #items > 0 then
 			if #items > 1 then

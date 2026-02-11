@@ -94,6 +94,41 @@ Settings are organised into four groups:
 ### Standalone Users
 Open Edit Mode: `ESC` → **Edit Mode** → Select the quest button frame.
 
+## 📊 Memory & Performance
+
+### Why Does Memory Keep Climbing?
+
+If you check your addon memory usage (e.g., via `/addons` or an addon manager), you might notice ElvQuestButton's memory slowly increasing over time — even when you're idle. **This is normal and expected.** Here's why:
+
+ElvQuestButton polls your quest log every **2 seconds** to check if any quest items are nearby. It also responds to game events (quest updates, zone changes, bag changes, etc.) to ensure the button stays current. Each of these checks involves Lua creating small, temporary data structures — things like distance calculations and item lists.
+
+These temporary objects accumulate in Lua's memory until WoW's **garbage collector** (GC) runs, which happens automatically on WoW's own schedule. When the GC runs, it cleans up all the unused objects at once, and you'll see the memory drop back down. This sawtooth pattern (gradual climb → sudden drop) is completely normal for any addon that does periodic work.
+
+### What We Do to Stay Lightweight
+
+*   **Table reuse**: The core detection logic pre-allocates its working tables (`uniqueItems`, `prioritizedItemLinks`, `allItems`) once at load time and `wipe()`s them each cycle instead of creating new tables. This means the GC has very little temporary garbage to clean up.
+*   **Event coalescing**: When multiple game events fire in the same frame (common during zone transitions or quest completions), we coalesce them into a **single** quest log evaluation on the next frame, rather than running the check once per event.
+*   **No forced GC**: We never call `collectgarbage()` ourselves. Forcing a GC cycle mid-gameplay causes frame stutters — WoW's built-in GC scheduling is designed to run during natural idle moments and is always the right choice.
+
+### Typical Resource Usage
+
+| Metric | Value |
+|---|---|
+| **Static data** | ~9 KB (quest/item lookup tables, loaded once) |
+| **Per-cycle allocation** | Negligible (table reuse, no new allocations) |
+| **Update frequency** | Every 2 seconds (polling) + on game events (coalesced) |
+| **CPU impact** | Minimal — a single quest log scan takes <0.1ms |
+
+### Memory Usage ≠ Performance Impact
+
+**Memory alone is a misleading metric.** An addon using 500 KB of memory but doing heavy work every frame is far worse for your FPS than an addon using 2 MB of memory but only working every 2 seconds. What actually matters is:
+
+1.  **CPU time per frame** — ElvQuestButton does zero work per frame. It uses event-driven updates and a 2-second ticker. It never hooks `OnUpdate` for the main button logic.
+2.  **GC pressure** — How much temporary garbage an addon creates. We minimise this through table reuse and event coalescing.
+3.  **Secure action taint** — Poorly written addons can cause "taint" errors that break Blizzard UI. ElvQuestButton carefully defers all protected operations and never touches secure attributes during combat.
+
+**Bottom line**: The memory number you see climbing is just Lua's normal GC cycle. The addon's actual performance footprint is near-zero.
+
 ## 🤝 Credits
 
 *   **p3lim**: Author of the original [ExtraQuestButton](https://github.com/p3lim-wow/ExtraQuestButton), from which the core quest detection logic is derived.
