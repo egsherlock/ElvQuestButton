@@ -111,19 +111,20 @@ function EQB:SetupKeybind()
         end
     end)
     
-    -- Hook AB:DisplayBindings to customize the tooltip that shows for our button
-    -- DisplayBindings is the FINAL tooltip function in ElvUI's bind system.
-    -- It's called after the hide/show cascade completes, so our changes stick.
-    hooksecurefunc(AB, 'DisplayBindings', function(_, tt)
-        local bind = AB.KeyBinder
-        if not bind or bind.button ~= button then return end
+    -- Show our custom tooltip after ALL event cascading has completed.
+    -- We defer to the next frame with C_Timer.After(0) so nothing overwrites us.
+    -- This fires on initial hover AND after every key press (bind/clear/escape).
+    local function ShowBindTooltip()
+        local tt = _G.GameTooltip
         if tt:IsForbidden() then return end
         
-        -- Clear ElvUI's default lines and add our custom tooltip
-        tt:ClearLines()
+        local bind = AB.KeyBinder
+        if not bind or not bind.active or bind.button ~= button then return end
+        
+        tt:SetOwner(bind, 'ANCHOR_TOP')
+        tt:SetPoint('BOTTOM', bind, 'TOP', 0, 1)
         tt:AddLine('Quest Item Button', 1, 1, 1)
         
-        -- Show current direct bindings for ELVQUESTBUTTON
         local bindings = { GetBindingKey(bindName) }
         if #bindings > 0 then
             tt:AddDoubleLine('Binding', 'Key', 0.6, 0.6, 0.6, 0.6, 0.6, 0.6)
@@ -131,7 +132,6 @@ function EQB:SetupKeybind()
                 tt:AddDoubleLine('Binding ' .. i, GetBindingText(key, 1), 1, 1, 1)
             end
         else
-            -- No direct binding — check for the ExtraActionButton fallback
             local fallbackKey = GetBindingKey('EXTRAACTIONBUTTON1')
             if fallbackKey then
                 tt:AddLine('Using ExtraActionButton default: ' .. GetBindingText(fallbackKey, 1), 1, 0.82, 0)
@@ -143,6 +143,11 @@ function EQB:SetupKeybind()
         end
         
         tt:Show()
+    end
+    
+    hooksecurefunc(AB, 'BindUpdate', function(_, btn)
+        if btn ~= button then return end
+        C_Timer.After(0, ShowBindTooltip)
     end)
     
     Debug("Registered with ElvUI keybind system: " .. bindName)

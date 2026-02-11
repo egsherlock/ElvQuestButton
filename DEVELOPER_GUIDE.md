@@ -54,6 +54,49 @@ A critical race condition exists when ElvUI modules initialize. ElvUI loads its 
 *   **The Trap**: Relying solely on a module's `Initialized` flag in your settings accessor (e.g., `addon:GetCurrentSettings()`) is risky. If an event fires (like a button click) before the module flags itself ready, the accessor might fall back to hardcoded `DEFAULTS`.
 *   **The Fix**: In `ElvUI/init.lua`, we modified the accessor to peek directly at `E.db.elvQuestButton` as a priority fallback. If the table exists in ElvUI's DB, we use it immediately, regardless of the module's internal state. This prevents settings from silently reverting to defaults during startup or reload.
 
+### 6. ElvUI `/kb` Keybind Integration
+
+ElvUI uses its **own** keybind system (`Bind.lua`) for the `/kb` command — it is completely separate from both Blizzard's Key Binding UI and `QuickKeybindButtonTemplate`. Understanding this system is critical.
+
+#### How ElvUI's Bind System Works
+1.  **`AB.handledbuttons`**: A table of all buttons ElvUI manages. Buttons must be registered here.
+2.  **`button.keyBoundTarget`** / **`button.commandName`**: String identifiers telling ElvUI which WoW binding action to modify (e.g., `"ELVQUESTBUTTON"`).
+3.  **`AB:BindUpdate(button)`**: Called on hover, positions the invisible `ElvUI_KeyBinder` overlay frame on the button.
+4.  **`AB:BindListener(key)`**: Captures key presses and calls `SetBinding(key, button.bindstring)`.
+5.  **`AB:DisplayBindings(tt)`**: Shows the final tooltip with binding info.
+
+#### Key Findings
+
+**Binding Command Must Match `Bindings.xml`:** ElvUI's `/kb` calls `SetBinding(key, bindName)`. Our addon's `UpdateBinding()` reads from `GetBindingKey(bindName)`. If these use *different* binding commands, they'll be out of sync. We use `addonName:upper()` (`"ELVQUESTBUTTON"`) for both, matching our `Bindings.xml` definition.
+
+**`SetupButton` Can Block Keybind Registration:** If `SkinButton()` (which calls `AB:StyleButton()`) throws an error, it can prevent subsequent code from running. We wrap it in `pcall` and register keybinds in a separate `SetupKeybind()` function called independently from `init.lua`.
+
+**Tooltip Event Cascade ("The `handlingBinds` Problem"):** ElvUI's tooltip for bind mode uses a two-phase approach:
+1.  `BindTooltip(true)` adds temporary "Trigger" text and sets `GameTooltip.handlingBinds = true`.
+2.  When `GameTooltip:Hide()` fires later, a `ShowBinds` hook checks `handlingBinds` and calls `DisplayBindings()` to show the real tooltip. `ShowBinds` then sets `handlingBinds = nil`.
+
+**The problem:** Any approach that calls `GameTooltip:SetOwner()`, `GameTooltip:Hide()`, or `AB:DisplayBindings()` during the same frame as `BindUpdate` triggers cascading hide/show events that consume `handlingBinds`, breaking the tooltip for subsequent interactions.
+
+**The solution:** Use `C_Timer.After(0, ShowBindTooltip)` in a `hooksecurefunc(AB, 'BindUpdate')` post-hook. This defers tooltip display to the **next frame**, after all event handlers have completed and the call stack has fully unwound. Nothing can overwrite the tooltip because we run last.
+
+```lua
+-- Pattern: Deferred tooltip for ElvUI bind mode
+hooksecurefunc(AB, 'BindUpdate', function(_, btn)
+    if btn ~= myButton then return end
+    C_Timer.After(0, function()
+        local tt = _G.GameTooltip
+        local bind = AB.KeyBinder
+        if not bind or not bind.active or bind.button ~= myButton then return end
+        tt:SetOwner(bind, 'ANCHOR_TOP')
+        tt:SetPoint('BOTTOM', bind, 'TOP', 0, 1)
+        -- Add custom lines here
+        tt:Show()
+    end)
+end)
+```
+
+**Why NOT `LibKeyBound`:** ElvUI does *not* use `LibKeyBound` for its `/kb` system. Attempting to integrate via `LibKeyBound` will silently fail. Always use `AB.handledbuttons`, `button.keyBoundTarget`, and `AB:BindUpdate()` directly.
+
 ## 🤝 Contributing
 1.  Fork the repo.
 2.  Make your changes.
