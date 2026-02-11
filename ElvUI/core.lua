@@ -285,13 +285,10 @@ function EQB:UpdateButton()
     local db = self:GetDB()
     if not db then return end
     
-    -- Scale
+    -- Scale (matches ElvUI Boss Button pattern: scale the holder, button inherits via SetAllPoints)
     local scale = db.scale or 1
-    button:SetScale(scale * E.uiscale)
-    button:SetIgnoreParentScale(true)
-    
-    local width, height = button:GetSize()
-    self.holder:SetSize(width * scale, height * scale)
+    self.holder:SetScale(scale)
+    self.holder:SetSize(52 * scale, 52 * scale)
     
     -- Alpha
     button:SetAlpha(db.alpha or 1)
