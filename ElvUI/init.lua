@@ -29,6 +29,7 @@ local moduleDefaults = {
     distanceYd = 1000,
     inheritGlobalFade = false,
     autoLockOnUse = true,
+    lockOnSwitch = true,
     
     -- Fonts & Text
     countFont = 'Expressway',

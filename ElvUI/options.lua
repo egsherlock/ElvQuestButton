@@ -127,8 +127,18 @@ function EQB:InsertOptions()
                             end
                         end,
                     },
-                    distanceYd = {
+                    lockOnSwitch = {
                         order = 4,
+                        type = 'toggle',
+                        name = "Lock on Switch",
+                        desc = "Automatically lock the quest item when using the Switch button to cycle between items",
+                        get = function() return self:GetDB().lockOnSwitch end,
+                        set = function(_, value)
+                            self:GetDB().lockOnSwitch = value
+                        end,
+                    },
+                    distanceYd = {
+                        order = 5,
                         type = 'range',
                         name = "Tracking Distance",
                         desc = "Maximum distance in yards to show quest items",

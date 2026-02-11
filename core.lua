@@ -27,6 +27,7 @@ addon.DEFAULTS = {
     zoneOnly = false,
     distanceYd = 1000,
     autoLockOnUse = true,
+    lockOnSwitch = true,
 }
 
 -- Attribute handler for secure button behavior
@@ -263,8 +264,19 @@ function coreMixin:SwitchItem()
     end
     
     if nextItem then
-        self:SetLockedItem(nextItem)
-        self:UpdateState()
+        local settings = addon:GetCurrentSettings()
+        if settings and settings.lockOnSwitch then
+            self:SetLockedItem(nextItem)
+            self:UpdateState()
+        else
+            -- Just set the item directly without locking
+            -- Don't call UpdateState here as it would immediately revert
+            -- to the closest item since there's no lock
+            self:SetItem(nextItem)
+            if self.UpdateFeatures then
+                self:UpdateFeatures()
+            end
+        end
     end
 end
 

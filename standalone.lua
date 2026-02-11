@@ -226,6 +226,17 @@ function addon:InitStandalone()
             end,
         },
         {
+            name = 'Lock on Switch',
+            kind = LEM.SettingType.Checkbox,
+            default = DEFAULTS.lockOnSwitch,
+            get = function(layoutName)
+                return ElvQuestButtonDB.profiles[layoutName].lockOnSwitch
+            end,
+            set = function(layoutName, value)
+                ElvQuestButtonDB.profiles[layoutName].lockOnSwitch = value
+            end,
+        },
+        {
             name = L['Tracking distance'],
             kind = LEM.SettingType.Slider,
             default = DEFAULTS.distanceYd,
