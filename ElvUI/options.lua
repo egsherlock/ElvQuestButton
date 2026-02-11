@@ -31,11 +31,11 @@ function EQB:InsertOptions()
                 name = 'Displays a button for quest items in your bags.\nPosition using: |cff00ff00/moveui|r\n\n',
             },
             
-            -- General Settings
+            -- Group 1: General (Core Toggles)
             generalGroup = {
                 order = 10,
                 type = 'group',
-                name = L["General"],
+                name = "General",
                 inline = true,
                 args = {
                     enable = {
@@ -49,8 +49,107 @@ function EQB:InsertOptions()
                             if value then self:UpdateButton() end
                         end,
                     },
-                    scale = {
+                    inheritGlobalFade = {
                         order = 2,
+                        type = 'toggle',
+                        name = L["Inherit Global Fade"],
+                        desc = "Fade this button along with your action bars when using ElvUI's Global Fade",
+                        get = function() return self:GetDB().inheritGlobalFade end,
+                        set = function(_, value)
+                            self:GetDB().inheritGlobalFade = value
+                            self:UpdateButton()
+                        end,
+                    },
+                    testMode = {
+                        order = 3,
+                        type = 'execute',
+                        name = function()
+                            return self:IsTestMode() and "Hide Test Button" or "Show Test Button"
+                        end,
+                        desc = "Show/hide a preview of the button with a sample icon to verify styling",
+                         func = function()
+                            local isOn = self:ToggleTestMode()
+                            -- Force options refresh to update button label
+                            E:UpdateOptions()
+                        end,
+                    },
+                },
+            },
+            
+            -- Group 2: Quest Logic (The "Centrefold" - Main Behavior)
+            logicGroup = {
+                order = 20,
+                type = 'group',
+                name = "Quest Logic",
+                inline = true,
+                args = {
+                    instructions = {
+                        order = 0,
+                        type = 'description',
+                        name = "Configure how and when the button appears.",
+                        fontSize = 'medium',
+                    },
+                    trackingOnly = {
+                        order = 1,
+                        type = 'toggle',
+                        name = "Only Tracked Quests",
+                        desc = "Only show button for quests you are actively tracking",
+                        get = function() return self:GetDB().trackingOnly end,
+                        set = function(_, value)
+                            self:GetDB().trackingOnly = value
+                        end,
+                    },
+                    zoneOnly = {
+                        order = 2,
+                        type = 'toggle',
+                        name = "Current Zone Only",
+                        desc = "Only show button for quests in your current zone",
+                        get = function() return self:GetDB().zoneOnly end,
+                        set = function(_, value)
+                            self:GetDB().zoneOnly = value
+                        end,
+                    },
+                    autoLockOnUse = {
+                        order = 3,
+                        type = 'toggle',
+                        name = "Auto-Lock After Use",
+                        desc = "Automatically lock the quest item after clicking it, so it won't swap to a different item. Unlocks when the quest completes or you leave the area.",
+                        get = function() return self:GetDB().autoLockOnUse == true end,
+                        set = function(_, value)
+                            self:GetDB().autoLockOnUse = value and true or false
+                            -- If turning off, also unlock any currently locked item
+                            if not value then
+                                local btn = _G.ElvQuestButton or _G[addonName]
+                                if btn and btn.lockedItemLink and not btn.inCombat then
+                                    btn:SetLockedItem(nil)
+                                    btn:UpdateState()
+                                end
+                            end
+                        end,
+                    },
+                    distanceYd = {
+                        order = 4,
+                        type = 'range',
+                        name = "Tracking Distance",
+                        desc = "Maximum distance in yards to show quest items",
+                        min = 5, max = 10000, step = 5,
+                        get = function() return self:GetDB().distanceYd end,
+                        set = function(_, value)
+                            self:GetDB().distanceYd = value
+                        end,
+                    },
+                },
+            },
+
+            -- Group 3: Button Appearance (Visuals)
+            appearanceGroup = {
+                order = 30,
+                type = 'group',
+                name = "Button Appearance",
+                inline = true,
+                args = {
+                    scale = {
+                        order = 1,
                         type = 'range',
                         name = L["Scale"],
                         desc = "Button scale",
@@ -63,7 +162,7 @@ function EQB:InsertOptions()
                         end,
                     },
                     alpha = {
-                        order = 3,
+                        order = 2,
                         type = 'range',
                         name = L["Alpha"],
                         desc = "Button transparency",
@@ -75,36 +174,37 @@ function EQB:InsertOptions()
                             self:UpdateButton()
                         end,
                     },
-                    inheritGlobalFade = {
-                        order = 4,
-                        type = 'toggle',
-                        name = L["Inherit Global Fade"],
-                        desc = "Fade this button along with your action bars when using ElvUI's Global Fade",
-                        get = function() return self:GetDB().inheritGlobalFade end,
+                    toolsScale = {
+                        order = 3,
+                        type = 'range',
+                        name = "Tools Scale",
+                        desc = "Scale of the Lock and Switch buttons",
+                        min = 0.5, max = 2, step = 0.1,
+                        get = function() return self:GetDB().lockScale end,
                         set = function(_, value)
-                            self:GetDB().inheritGlobalFade = value
-                                self:UpdateButton()
+                            self:GetDB().lockScale = value
+                            self:UpdateButton()
                         end,
                     },
-                    testMode = {
-                        order = 5,
-                        type = 'execute',
-                        name = function()
-                            return self:IsTestMode() and "Hide Test" or "Test Button"
-                        end,
-                        desc = "Show/hide a preview of the button with a sample icon to verify styling",
-                        func = function()
-                            local isOn = self:ToggleTestMode()
-                            -- Force options refresh to update button label
-                            E:UpdateOptions()
+                    noCooldownText = {
+                        order = 4,
+                        type = 'toggle',
+                        name = "Hide Cooldown Text",
+                        desc = "Hide the countdown numbers on cooldown",
+                        get = function() return self:GetDB().noCooldownText end,
+                        set = function(_, value)
+                            self:GetDB().noCooldownText = value
+                            if button and button.EnableCooldownText then
+                                button:EnableCooldownText(not value)
+                            end
                         end,
                     },
                 },
             },
             
-            -- Fonts & Text Settings
+            -- Group 4: Fonts & Text Settings
             fontsGroup = {
-                order = 15,
+                order = 40,
                 type = 'group',
                 name = "Fonts & Text",
                 inline = false,
@@ -169,98 +269,6 @@ function EQB:InsertOptions()
                         order = 15, type = 'range', name = L["Y-Offset"], min = -50, max = 50, step = 1,
                         get = function() return self:GetDB().hotkeyYOffset end,
                         set = function(_, value) self:GetDB().hotkeyYOffset = value; self:UpdateButton() end,
-                    },
-                },
-            },
-            
-            -- Quest Behavior
-            behaviorGroup = {
-                order = 20,
-                type = 'group',
-                name = "Quest Behavior",
-                inline = true,
-                args = {
-                    trackingOnly = {
-                        order = 1,
-                        type = 'toggle',
-                        name = "Only Tracked Quests",
-                        desc = "Only show button for quests you are actively tracking",
-                        get = function() return self:GetDB().trackingOnly end,
-                        set = function(_, value)
-                            self:GetDB().trackingOnly = value
-                        end,
-                    },
-                    zoneOnly = {
-                        order = 2,
-                        type = 'toggle',
-                        name = "Current Zone Only",
-                        desc = "Only show button for quests in your current zone",
-                        get = function() return self:GetDB().zoneOnly end,
-                        set = function(_, value)
-                            self:GetDB().zoneOnly = value
-                        end,
-                    },
-                    autoLockOnUse = {
-                        order = 3,
-                        type = 'toggle',
-                        name = "Auto-Lock After Use",
-                        desc = "Automatically lock the quest item after clicking it, so it won't swap to a different item. Unlocks when the quest completes or you leave the area.",
-                        get = function() return self:GetDB().autoLockOnUse == true end,
-                        set = function(_, value)
-                            self:GetDB().autoLockOnUse = value and true or false
-                            -- If turning off, also unlock any currently locked item
-                            if not value then
-                                local btn = _G.ElvQuestButton or _G[addonName]
-                                if btn and btn.lockedItemLink and not btn.inCombat then
-                                    btn:SetLockedItem(nil)
-                                    btn:UpdateState()
-                                end
-                            end
-                        end,
-                    },
-                    distanceYd = {
-                        order = 4,
-                        type = 'range',
-                        name = "Tracking Distance",
-                        desc = "Maximum distance in yards to show quest items",
-                        min = 5, max = 10000, step = 5,
-                        get = function() return self:GetDB().distanceYd end,
-                        set = function(_, value)
-                            self:GetDB().distanceYd = value
-                        end,
-                    },
-                    lockScale = {
-                         order = 5, type = 'range', name = "Tools Scale",
-                         desc = "Scale of the Lock and Switch buttons",
-                         min = 0.5, max = 2, step = 0.1,
-                         get = function() return self:GetDB().lockScale end,
-                         set = function(_, value)
-                             self:GetDB().lockScale = value
-                             self:UpdateButton()
-                         end,
-                    },
-                },
-            },
-            
-            -- Cooldown Settings
-            cooldownGroup = {
-                order = 30,
-                type = 'group',
-                name = "Cooldown",
-                inline = true,
-                args = {
-                    noCooldownText = {
-                        order = 1,
-                        type = 'toggle',
-                        name = "Hide Cooldown Text",
-                        desc = "Hide the countdown numbers on cooldown",
-                        get = function() return self:GetDB().noCooldownText end,
-                        set = function(_, value)
-                            self:GetDB().noCooldownText = value
-                            if button and button.EnableCooldownText then
-                                button:EnableCooldownText(not value)
-                            end
-                        end,
                     },
                 },
             },
