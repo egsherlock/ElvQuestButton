@@ -29,6 +29,22 @@ local moduleDefaults = {
     distanceYd = 1000,
     inheritGlobalFade = false,
     autoLockOnUse = true,
+    
+    -- Fonts & Text
+    countFont = 'Expressway',
+    countFontSize = 16,
+    countFontOutline = 'OUTLINE',
+    countXOffset = 0,
+    countYOffset = 0,
+    
+    hotkeyFont = 'Expressway',
+    hotkeyFontSize = 16,
+    hotkeyFontOutline = 'OUTLINE',
+    hotkeyXOffset = 0,
+    hotkeyYOffset = 0,
+    
+    -- Features
+    lockScale = 1,
 }
 
 -- Add to ElvUI profile defaults
@@ -94,6 +110,9 @@ function EQB:Initialize()
     
     -- Reparent and skin button
     self:SetupButton()
+    
+    -- Register with ElvUI /kb keybind system (separate from skinning)
+    self:SetupKeybind()
     
     -- Apply updates
     self:UpdateButton()

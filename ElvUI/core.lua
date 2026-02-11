@@ -62,18 +62,21 @@ function EQB:SetupButton()
     
     if button.__elvuiSetup then return end
     
-    Debug("Setting up button")
+    Debug("Setting up button: " .. tostring(button:GetName()))
     
     -- Reparent to holder
     button:SetParent(self.holder)
     button:ClearAllPoints()
     button:SetAllPoints(self.holder)
     
-    -- Apply ElvUI skinning
-    self:SkinButton(button)
+    -- Apply ElvUI skinning (protected so errors don't block keybind setup)
+    local skinOk, skinErr = pcall(function() self:SkinButton(button) end)
+    if not skinOk then
+        Debug("SkinButton error: " .. tostring(skinErr))
+    end
     
     -- Hide from Blizzard Edit Mode
-    self:DisableEditMode(button)
+    pcall(function() self:DisableEditMode(button) end)
     
     -- Hook OnShow to maintain skin
     button:HookScript('OnShow', function(self)
@@ -81,6 +84,68 @@ function EQB:SetupButton()
     end)
     
     button.__elvuiSetup = true
+    Debug("SetupButton complete")
+end
+
+-- Separate keybind registration - must run AFTER SetupButton
+function EQB:SetupKeybind()
+    local button = _G.ElvQuestButton or _G[addonName]
+    if not button then return end
+    if not AB then return end
+    
+    -- Use the SAME binding command as our Bindings.xml defines
+    -- This way ElvUI /kb and our own UpdateBinding() stay in sync
+    local bindName = addonName:upper() -- "ELVQUESTBUTTON" - matches Bindings.xml
+    button.keyBoundTarget = bindName
+    button.commandName = bindName
+    
+    -- Register in ElvUI's handled buttons table
+    AB.handledbuttons = AB.handledbuttons or {}
+    AB.handledbuttons[button] = true
+    
+    -- Hook OnEnter to trigger BindUpdate when hovered in /kb mode
+    button:HookScript('OnEnter', function(btn)
+        local bind = AB.KeyBinder
+        if bind and bind.active then
+            AB:BindUpdate(btn)
+        end
+    end)
+    
+    -- Hook AB:DisplayBindings to customize the tooltip that shows for our button
+    -- DisplayBindings is the FINAL tooltip function in ElvUI's bind system.
+    -- It's called after the hide/show cascade completes, so our changes stick.
+    hooksecurefunc(AB, 'DisplayBindings', function(_, tt)
+        local bind = AB.KeyBinder
+        if not bind or bind.button ~= button then return end
+        if tt:IsForbidden() then return end
+        
+        -- Clear ElvUI's default lines and add our custom tooltip
+        tt:ClearLines()
+        tt:AddLine('Quest Item Button', 1, 1, 1)
+        
+        -- Show current direct bindings for ELVQUESTBUTTON
+        local bindings = { GetBindingKey(bindName) }
+        if #bindings > 0 then
+            tt:AddDoubleLine('Binding', 'Key', 0.6, 0.6, 0.6, 0.6, 0.6, 0.6)
+            for i, key in ipairs(bindings) do
+                tt:AddDoubleLine('Binding ' .. i, GetBindingText(key, 1), 1, 1, 1)
+            end
+        else
+            -- No direct binding — check for the ExtraActionButton fallback
+            local fallbackKey = GetBindingKey('EXTRAACTIONBUTTON1')
+            if fallbackKey then
+                tt:AddLine('Using ExtraActionButton default: ' .. GetBindingText(fallbackKey, 1), 1, 0.82, 0)
+                tt:AddLine('Set a new bind for a dedicated key', 0.4, 0.8, 1)
+            else
+                tt:AddLine('No bindings set.', 0.6, 0.6, 0.6)
+                tt:AddLine('Press a key to bind', 0.4, 0.8, 1)
+            end
+        end
+        
+        tt:Show()
+    end)
+    
+    Debug("Registered with ElvUI keybind system: " .. bindName)
 end
 
 function EQB:SkinButton(button)
@@ -234,6 +299,31 @@ function EQB:UpdateButton()
     -- Cooldown text
     if button.EnableCooldownText then
         button:EnableCooldownText(not db.noCooldownText)
+    end
+    
+    -- Fonts & Text
+    local LSM = E.Libs.LSM
+    if LSM then
+        -- Count
+        local countFont = LSM:Fetch("font", db.countFont)
+        if countFont then
+            button.Count:SetFont(countFont, db.countFontSize or 16, db.countFontOutline or "OUTLINE")
+            button.Count:ClearAllPoints()
+            button.Count:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -6 + (db.countXOffset or 0), 6 + (db.countYOffset or 0))
+        end
+        
+        -- HotKey
+        local hotkeyFont = LSM:Fetch("font", db.hotkeyFont)
+        if hotkeyFont then
+            button.HotKey:SetFont(hotkeyFont, db.hotkeyFontSize or 16, db.hotkeyFontOutline or "OUTLINE")
+            button.HotKey:ClearAllPoints()
+            button.HotKey:SetPoint("TOPRIGHT", button, "TOPRIGHT", -6 + (db.hotkeyXOffset or 0), -6 + (db.hotkeyYOffset or 0))
+        end
+    end
+    
+    -- Features Scale
+    if button.FeaturesFrame then
+        button.FeaturesFrame:SetScale(db.lockScale or 1)
     end
     
     Debug("Button updated")

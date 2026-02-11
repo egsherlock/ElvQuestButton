@@ -102,6 +102,77 @@ function EQB:InsertOptions()
                 },
             },
             
+            -- Fonts & Text Settings
+            fontsGroup = {
+                order = 15,
+                type = 'group',
+                name = "Fonts & Text",
+                inline = false,
+                args = {
+                    countHeader = { order = 1, type = 'header', name = "Count Text" },
+                    countFont = {
+                        order = 2, type = 'select', dialogControl = 'LSM30_Font',
+                        name = L["Font"],
+                        values = AceGUIWidgetLSMlists and AceGUIWidgetLSMlists.font or {},
+                        get = function() return self:GetDB().countFont end,
+                        set = function(_, value) self:GetDB().countFont = value; self:UpdateButton() end,
+                    },
+                    countFontSize = {
+                        order = 3, type = 'range', name = L["Font Size"],
+                        min = 6, max = 32, step = 1,
+                        get = function() return self:GetDB().countFontSize end,
+                        set = function(_, value) self:GetDB().countFontSize = value; self:UpdateButton() end,
+                    },
+                    countFontOutline = {
+                        order = 4, type = 'select', name = L["Font Outline"],
+                        values = { ['NONE'] = L["None"], ['OUTLINE'] = 'OUTLINE', ['MONOCHROMEOUTLINE'] = 'MONOCROMEOUTLINE', ['THICKOUTLINE'] = 'THICKOUTLINE' },
+                        get = function() return self:GetDB().countFontOutline end,
+                        set = function(_, value) self:GetDB().countFontOutline = value; self:UpdateButton() end,
+                    },
+                    countXOffset = {
+                        order = 5, type = 'range', name = L["X-Offset"], min = -50, max = 50, step = 1,
+                        get = function() return self:GetDB().countXOffset end,
+                        set = function(_, value) self:GetDB().countXOffset = value; self:UpdateButton() end,
+                    },
+                    countYOffset = {
+                        order = 6, type = 'range', name = L["Y-Offset"], min = -50, max = 50, step = 1,
+                        get = function() return self:GetDB().countYOffset end,
+                        set = function(_, value) self:GetDB().countYOffset = value; self:UpdateButton() end,
+                    },
+                    
+                    hotkeyHeader = { order = 10, type = 'header', name = "Keybind Text" },
+                    hotkeyFont = {
+                        order = 11, type = 'select', dialogControl = 'LSM30_Font',
+                        name = L["Font"],
+                        values = AceGUIWidgetLSMlists and AceGUIWidgetLSMlists.font or {},
+                        get = function() return self:GetDB().hotkeyFont end,
+                        set = function(_, value) self:GetDB().hotkeyFont = value; self:UpdateButton() end,
+                    },
+                    hotkeyFontSize = {
+                        order = 12, type = 'range', name = L["Font Size"],
+                        min = 6, max = 32, step = 1,
+                        get = function() return self:GetDB().hotkeyFontSize end,
+                        set = function(_, value) self:GetDB().hotkeyFontSize = value; self:UpdateButton() end,
+                    },
+                    hotkeyFontOutline = {
+                        order = 13, type = 'select', name = L["Font Outline"],
+                        values = { ['NONE'] = L["None"], ['OUTLINE'] = 'OUTLINE', ['MONOCHROMEOUTLINE'] = 'MONOCROMEOUTLINE', ['THICKOUTLINE'] = 'THICKOUTLINE' },
+                        get = function() return self:GetDB().hotkeyFontOutline end,
+                        set = function(_, value) self:GetDB().hotkeyFontOutline = value; self:UpdateButton() end,
+                    },
+                    hotkeyXOffset = {
+                        order = 14, type = 'range', name = L["X-Offset"], min = -50, max = 50, step = 1,
+                        get = function() return self:GetDB().hotkeyXOffset end,
+                        set = function(_, value) self:GetDB().hotkeyXOffset = value; self:UpdateButton() end,
+                    },
+                    hotkeyYOffset = {
+                        order = 15, type = 'range', name = L["Y-Offset"], min = -50, max = 50, step = 1,
+                        get = function() return self:GetDB().hotkeyYOffset end,
+                        set = function(_, value) self:GetDB().hotkeyYOffset = value; self:UpdateButton() end,
+                    },
+                },
+            },
+            
             -- Quest Behavior
             behaviorGroup = {
                 order = 20,
@@ -157,6 +228,16 @@ function EQB:InsertOptions()
                         set = function(_, value)
                             self:GetDB().distanceYd = value
                         end,
+                    },
+                    lockScale = {
+                         order = 5, type = 'range', name = "Tools Scale",
+                         desc = "Scale of the Lock and Switch buttons",
+                         min = 0.5, max = 2, step = 0.1,
+                         get = function() return self:GetDB().lockScale end,
+                         set = function(_, value)
+                             self:GetDB().lockScale = value
+                             self:UpdateButton()
+                         end,
                     },
                 },
             },
