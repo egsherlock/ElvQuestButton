@@ -349,5 +349,19 @@ function addon:CreateExtraButton(extraTemplates)
 	
 	Button.SwitchButton = SwitchButton
 
+	-- Scroll to Switch (mouse wheel on the main button)
+	Button:EnableMouseWheel(true)
+	Button:HookScript('OnMouseWheel', function(self, delta)
+		local settings = addon:GetCurrentSettings()
+		if not settings or not settings.scrollToSwitch then return end
+		if not self.lastNearbyItems or #self.lastNearbyItems < 2 then return end
+
+		if delta > 0 then
+			self:SwitchItem()
+		else
+			self:SwitchItemPrevious()
+		end
+	end)
+
 	return Button
 end

@@ -30,6 +30,7 @@ local moduleDefaults = {
     inheritGlobalFade = false,
     autoLockOnUse = true,
     lockOnSwitch = true,
+    scrollToSwitch = true,
     
     -- Fonts & Text
     countFont = 'Expressway',

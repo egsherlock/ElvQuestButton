@@ -28,6 +28,7 @@ addon.DEFAULTS = {
     distanceYd = 1000,
     autoLockOnUse = true,
     lockOnSwitch = true,
+    scrollToSwitch = true,
 }
 
 -- Attribute handler for secure button behavior
@@ -273,6 +274,42 @@ function coreMixin:SwitchItem()
             -- Don't call UpdateState here as it would immediately revert
             -- to the closest item since there's no lock
             self:SetItem(nextItem)
+            if self.UpdateFeatures then
+                self:UpdateFeatures()
+            end
+        end
+    end
+end
+
+function coreMixin:SwitchItemPrevious()
+    -- Switching is NOT safe in combat
+    if InCombatLockdown() then return end
+    
+    if not self.lastNearbyItems or #self.lastNearbyItems < 2 then return end
+    
+    local current = self.lockedItemLink or self:GetItemLink()
+    if not current then return end
+    
+    local prevItem
+    for i, link in ipairs(self.lastNearbyItems) do
+        if link == current then
+            prevItem = self.lastNearbyItems[i-1]
+            break
+        end
+    end
+    
+    -- Wrap around to end
+    if not prevItem then
+        prevItem = self.lastNearbyItems[#self.lastNearbyItems]
+    end
+    
+    if prevItem then
+        local settings = addon:GetCurrentSettings()
+        if settings and settings.lockOnSwitch then
+            self:SetLockedItem(prevItem)
+            self:UpdateState()
+        else
+            self:SetItem(prevItem)
             if self.UpdateFeatures then
                 self:UpdateFeatures()
             end

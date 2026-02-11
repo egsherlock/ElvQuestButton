@@ -97,6 +97,46 @@ end)
 
 **Why NOT `LibKeyBound`:** ElvUI does *not* use `LibKeyBound` for its `/kb` system. Attempting to integrate via `LibKeyBound` will silently fail. Always use `AB.handledbuttons`, `button.keyBoundTarget`, and `AB:BindUpdate()` directly.
 
+### 7. Scroll to Switch (Mouse Wheel on Secure Buttons)
+
+Allowing mouse-wheel scrolling to cycle quest items on a `SecureActionButtonTemplate` button requires careful consideration.
+
+*   **`EnableMouseWheel(true)`**: Called during button creation (out of combat) in `button.lua`. This lets the frame receive `OnMouseWheel` events.
+*   **`OnMouseWheel` is non-protected**: The scroll handler is a standard Lua script, not a secure action. It doesn't trigger `SetAttribute` directly — it calls `SwitchItem()` / `SwitchItemPrevious()`, both of which already have `InCombatLockdown()` guards at the top. This means scroll events are silently ignored during combat.
+*   **`HookScript` vs `SetScript`**: We use `HookScript('OnMouseWheel', ...)` rather than `SetScript` to avoid overriding any existing handlers (present or future) on the secure template.
+*   **Direction mapping**: `delta > 0` = scroll up = next item, `delta < 0` = scroll down = previous item.
+*   **Setting check**: The handler reads `scrollToSwitch` from `addon:GetCurrentSettings()` at call time, so toggling the setting takes effect immediately without a `/reload`.
+
+### 8. Lock on Switch Behaviour
+
+The `SwitchItem()` and `SwitchItemPrevious()` functions support two modes controlled by `settings.lockOnSwitch`:
+
+*   **Lock ON (default)**: Calls `SetLockedItem(nextItem)` then `UpdateState()`. The lock ensures the item persists across update cycles.
+*   **Lock OFF**: Calls `SetItem(nextItem)` directly, then `UpdateFeatures()` (NOT `UpdateState`). This is intentional — calling `UpdateState()` without a lock would immediately re-evaluate the closest item and revert the switch, causing a visual flicker. `SetItem()` handles all the display updates (icon, count, attributes) without triggering a proximity re-check.
+
+### 9. The `trackingOnly` Inversion Bug
+
+The original `GetNearbyQuestItems()` in `utils.lua` had an inverted condition for the `trackingOnly` parameter. The function collects quest items from three loops:
+
+1.  **World Quest Watches** (`GetNumWorldQuestWatches`): Always included.
+2.  **Quest Watches** (`GetNumQuestWatches`): Always included — these are the *tracked* quests.
+3.  **All Quest Log Entries** (`GetNumQuestLogEntries`): Conditionally included.
+
+The third loop had:
+```lua
+-- WRONG: includes untracked quests only when trackingOnly is TRUE
+(trackingOnly and not info.isHidden)
+```
+
+This meant when `trackingOnly` was `false` (default), **no** regular quest log entries were included from loop 3 — effectively making "tracking only" the default behaviour. The fix:
+
+```lua
+-- CORRECT: includes untracked quests only when trackingOnly is FALSE
+(not trackingOnly and not info.isHidden)
+```
+
+Now loop 3 correctly adds all visible quest log entries when `trackingOnly` is off, and skips them (relying on loops 1 & 2 for tracked-only items) when `trackingOnly` is on.
+
 ## 🤝 Contributing
 1.  Fork the repo.
 2.  Make your changes.

@@ -237,6 +237,17 @@ function addon:InitStandalone()
             end,
         },
         {
+            name = 'Scroll to Switch',
+            kind = LEM.SettingType.Checkbox,
+            default = DEFAULTS.scrollToSwitch,
+            get = function(layoutName)
+                return ElvQuestButtonDB.profiles[layoutName].scrollToSwitch
+            end,
+            set = function(layoutName, value)
+                ElvQuestButtonDB.profiles[layoutName].scrollToSwitch = value
+            end,
+        },
+        {
             name = L['Tracking distance'],
             kind = LEM.SettingType.Slider,
             default = DEFAULTS.distanceYd,

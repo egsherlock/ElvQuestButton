@@ -137,8 +137,18 @@ function EQB:InsertOptions()
                             self:GetDB().lockOnSwitch = value
                         end,
                     },
-                    distanceYd = {
+                    scrollToSwitch = {
                         order = 5,
+                        type = 'toggle',
+                        name = "Scroll to Switch",
+                        desc = "Scroll the mouse wheel while hovering the button to cycle between available quest items",
+                        get = function() return self:GetDB().scrollToSwitch end,
+                        set = function(_, value)
+                            self:GetDB().scrollToSwitch = value
+                        end,
+                    },
+                    distanceYd = {
+                        order = 6,
                         type = 'range',
                         name = "Tracking Distance",
                         desc = "Maximum distance in yards to show quest items",
