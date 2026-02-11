@@ -37,7 +37,7 @@ function EQB:CreateHolder()
     E:CreateMover(
         holder,
         'ElvQuestButtonMover',
-        'Quest Item Button',
+        'Quest Button',
         nil,
         nil,
         nil,

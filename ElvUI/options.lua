@@ -17,7 +17,7 @@ function EQB:InsertOptions()
     E.Options.args.elvQuestButton = {
         order = 6,
         type = 'group',
-        name = 'Quest Item Button',
+        name = E:TextGradient('ElvQuestButton', 0.2, 0.7, 1, 0.2, 1, 0.6),
         icon = [[Interface\Icons\INV_Misc_Map02]],
         args = {
             header = {
