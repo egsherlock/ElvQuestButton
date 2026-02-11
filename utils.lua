@@ -196,7 +196,7 @@ function addon:GetNearbyQuestItems(maxDistanceYd, zoneOnly, trackingOnly)
 		local info = C_QuestLog.GetInfo(index)
 		if info and not info.isHeader and info.hasLocalPOI then
 			local questID = info.questID
-			if C_QuestLog.IsWorldQuest(questID) or info.questClassification == Enum.QuestClassification.BonusObjective or (trackingOnly and not info.isHidden) then
+			if C_QuestLog.IsWorldQuest(questID) or info.questClassification == Enum.QuestClassification.BonusObjective or (not trackingOnly and not info.isHidden) then
 				if not zoneOnly or IsQuestOnMapCurrentMap(questID) then
 					addPrioritizedItem(questID, maxDistanceYd)
 				end
