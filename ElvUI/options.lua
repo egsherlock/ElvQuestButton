@@ -79,7 +79,7 @@ function EQB:InsertOptions()
                         order = 4,
                         type = 'toggle',
                         name = L["Inherit Global Fade"],
-                        desc = "Fade button with action bars",
+                        desc = "Fade this button along with your action bars when using ElvUI's Global Fade",
                         get = function() return self:GetDB().inheritGlobalFade end,
                         set = function(_, value)
                             self:GetDB().inheritGlobalFade = value
