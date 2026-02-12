@@ -300,11 +300,17 @@ function addon:CreateExtraButton(extraTemplates)
     LockButton:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
         local button = self:GetParent():GetParent()
+        
+        GameTooltip:AddLine(self:GetChecked() and "Unlock Quest Item" or "Lock Quest Item", 1, 1, 1)
+        
         if button.inCombat then
-             GameTooltip:AddLine("Quest Item", 1, 1, 1)
              GameTooltip:AddLine("Action locked in combat", 1, 0, 0)
         else
-            GameTooltip:SetText(self:GetChecked() and "Unlock Quest Item" or "Lock Quest Item")
+            if self:GetChecked() then
+                GameTooltip:AddLine("Resume automatic updates based on proximity.", nil, nil, nil, true)
+            else
+                GameTooltip:AddLine("Prevent the button from automatically changing to other nearby quest items.", nil, nil, nil, true)
+            end
         end
         GameTooltip:Show()
     end)
@@ -334,11 +340,15 @@ function addon:CreateExtraButton(extraTemplates)
     SwitchButton:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
         local button = self:GetParent():GetParent()
+        
+        GameTooltip:AddLine("Switch Quest Item", 1, 1, 1)
+        
         if button.inCombat then
-             GameTooltip:AddLine("Quick Switch", 1, 1, 1)
              GameTooltip:AddLine("Cannot switch in combat", 1, 0, 0)
         else
-            GameTooltip:SetText("Switch Quest Item")
+            GameTooltip:AddLine("Cycle through other detected quest items nearby.", nil, nil, nil, true)
+            GameTooltip:AddLine(" ", 1, 1, 1) -- Spacer
+            GameTooltip:AddLine("|cffffd100Note:|r Switching automatically locks the new item.", 1, 1, 1, true)
         end
         GameTooltip:Show()
     end)

@@ -85,14 +85,14 @@ function EQB:InsertOptions()
                 name = "Quest Logic",
                 inline = true,
                 args = {
-                    instructions = {
-                        order = 0,
-                        type = 'description',
-                        name = "Configure how and when the button appears. When multiple quest items are nearby, use the Switch button or scroll wheel to cycle between them.",
-                        fontSize = 'medium',
+                    -- Section A: Visibility
+                    visHeader = {
+                        order = 1,
+                        type = 'header',
+                        name = "Visibility & Filters",
                     },
                     trackingOnly = {
-                        order = 1,
+                        order = 2,
                         type = 'toggle',
                         name = "Only Tracked Quests",
                         desc = "Only show button for quests you are actively tracking",
@@ -102,7 +102,7 @@ function EQB:InsertOptions()
                         end,
                     },
                     zoneOnly = {
-                        order = 2,
+                        order = 3,
                         type = 'toggle',
                         name = "Current Zone Only",
                         desc = "Only show button for quests in your current zone",
@@ -111,11 +111,30 @@ function EQB:InsertOptions()
                             self:GetDB().zoneOnly = value
                         end,
                     },
+                    distanceYd = {
+                        order = 4,
+                        type = 'range',
+                        name = "Tracking Distance",
+                        desc = "Maximum distance in yards to show quest items",
+                        min = 5, max = 10000, step = 5,
+                        get = function() return self:GetDB().distanceYd end,
+                        set = function(_, value)
+                            self:GetDB().distanceYd = value
+                        end,
+                    },
+
+                    -- Section B: Interaction
+                    behaviorHeader = {
+                        order = 10,
+                        type = 'header',
+                        name = "Interaction & Locking",
+                    },
+
                     autoLockOnUse = {
-                        order = 3,
+                        order = 12,
                         type = 'toggle',
                         name = "Auto-Lock After Use",
-                        desc = "Automatically lock the quest item after using it, preventing auto-switch to a different item. The lock is released when the quest completes or you leave the area.\n\nYou can always toggle the lock manually via the Lock icon (bottom-left of button).",
+                        desc = "Automatically lock the quest item after clicking it.\n\n|cffffd100Unlocks when:|r\n• Quest completes or is handed in\n• You leave the area\n• You click the Lock icon manually",
                         get = function() return self:GetDB().autoLockOnUse == true end,
                         set = function(_, value)
                             self:GetDB().autoLockOnUse = value and true or false
@@ -130,24 +149,13 @@ function EQB:InsertOptions()
                         end,
                     },
                     scrollToSwitch = {
-                        order = 4,
+                        order = 13,
                         type = 'toggle',
                         name = "Scroll to Switch",
-                        desc = "Scroll the mouse wheel while hovering the button to cycle between available quest items.\n\nSwitching (via scroll or the Switch button) always locks to the selected item, preventing auto-switch until the quest completes, you leave the area, or you unlock manually.",
+                        desc = "Scroll the mouse wheel while hovering the button to cycle between available quest items.\n\n|cffaaaaaaSwitching always locks to the selected item.|r\n\n|cffffd100Unlocks when:|r\n• Quest completes or is handed in\n• You leave the area\n• You click the Lock icon manually",
                         get = function() return self:GetDB().scrollToSwitch end,
                         set = function(_, value)
                             self:GetDB().scrollToSwitch = value
-                        end,
-                    },
-                    distanceYd = {
-                        order = 5,
-                        type = 'range',
-                        name = "Tracking Distance",
-                        desc = "Maximum distance in yards to show quest items",
-                        min = 5, max = 10000, step = 5,
-                        get = function() return self:GetDB().distanceYd end,
-                        set = function(_, value)
-                            self:GetDB().distanceYd = value
                         end,
                     },
                 },

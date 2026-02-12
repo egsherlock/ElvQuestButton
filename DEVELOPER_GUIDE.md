@@ -31,9 +31,10 @@ During development (Feb 2026), significant changes to the WoW API were introduce
 *   **Solution: Event-Driven State Mirroring**:
     1.  We initialize a local flag `self.inCombat` based on `InCombatLockdown()` at load.
     2.  We listen for `PLAYER_REGEN_DISABLED` (Enter Combat) and `PLAYER_REGEN_ENABLED` (Leave Combat) to update this flag instantly.
-    3.  **UI Updates**: All visual logic (e.g., desaturating the switch button, locking the item) checks `self.inCombat` instead of the API.
-    4.  **Attribute Updates**: Actual secure attribute changes are deferred until `PLAYER_REGEN_ENABLED` fires.
-    5.  **Auto-Lock After Use**: The `PostClick` hook in `addon.lua` sets `self.lockedItemLink` (a plain Lua flag, not a protected attribute), making it safe to execute at any time, including during combat.
+    3.  **QUEST_TURNED_IN Logic**: We listen for this event to trigger an immediate update. This ensures that if the locked item's quest is completed, it's removed from the "nearby" list and automatically unlocked/hidden without delay.
+    4.  **UI Updates**: All visual logic (e.g., desaturating the switch button, locking the item) checks `self.inCombat` instead of the API.
+    5.  **Attribute Updates**: Actual secure attribute changes are deferred until `PLAYER_REGEN_ENABLED` fires.
+    6.  **Auto-Lock After Use**: The `PostClick` hook in `addon.lua` sets `self.lockedItemLink` (a plain Lua flag, not a protected attribute), making it safe to execute at any time, including during combat.
 
 This dual approach ensures the UI feels responsive and accurate (using events) while the secure code remains safe (using deferrals).
 

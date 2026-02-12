@@ -60,6 +60,7 @@ function button:OnLoad()
     
     -- Quest and tracking related events (throttled via ScheduleUpdate)
     self:RegisterEvent('QUEST_LOG_UPDATE', self.ScheduleUpdate)
+    self:RegisterEvent('QUEST_TURNED_IN', self.ScheduleUpdate)
     self:RegisterEvent('QUEST_POI_UPDATE', self.ScheduleUpdate)
     self:RegisterEvent('QUEST_WATCH_LIST_CHANGED', self.ScheduleUpdate)
     self:RegisterEvent('ZONE_CHANGED', self.ScheduleUpdate)
