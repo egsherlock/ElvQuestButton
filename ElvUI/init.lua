@@ -46,6 +46,9 @@ local moduleDefaults = {
     
     -- Features
     lockScale = 1,
+    
+    -- Item Count Badge
+    itemCountFontSize = 10,
 }
 
 -- Add to ElvUI profile defaults

@@ -321,6 +321,26 @@ function EQB:UpdateButton()
             button.HotKey:ClearAllPoints()
             button.HotKey:SetPoint("TOPRIGHT", button, "TOPRIGHT", -6 + (db.hotkeyXOffset or 0), -6 + (db.hotkeyYOffset or 0))
         end
+        
+        -- Item Count Badge Font (uses Count font family but custom size)
+        local badgeFont = LSM:Fetch("font", db.countFont) -- Reuse count font family
+        if badgeFont then
+            local badgeSize = db.itemCountFontSize or 10
+            local badgeOutline = db.countFontOutline or "OUTLINE" -- Reuse count outline
+            
+            if button.ItemIndex then
+                button.ItemIndex:SetFont(badgeFont, badgeSize, badgeOutline)
+            end
+            
+            -- Apply inverse scaling if on switch button to prevent distortion
+            if button.SwitchButton and button.SwitchButton.Text then
+                 -- Calculate inverse scale to keep text size consistent
+                local toolsScale = db.lockScale or 1
+                local effectiveSize = badgeSize / toolsScale
+                
+                button.SwitchButton.Text:SetFont(badgeFont, effectiveSize, badgeOutline)
+            end
+        end
     end
     
     -- Features Scale
@@ -434,7 +454,6 @@ function EQB:ToggleTestMode()
             button:UpdateState()
         end
         
-        Debug("Test mode disabled")
         Debug("Test mode disabled")
         print("|cff00ff00[EQB]|r Test mode disabled")
     else
@@ -571,7 +590,6 @@ function EQB:ToggleTestMode()
             end
         end)
         
-        Debug("Test mode enabled")
         Debug("Test mode enabled")
         print("|cff00ff00[EQB]|r Test mode enabled")
     end

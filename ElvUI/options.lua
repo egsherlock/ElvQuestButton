@@ -224,17 +224,44 @@ function EQB:InsertOptions()
                         type = 'select',
                         name = "Item Count Badge",
                         desc = "Show which item you're on out of how many are available (e.g. '2/5').",
+                        -- sorting = "key", -- CAUSES CRASH: Ace3 doesn't support this
                         values = {
-                            ['NONE'] = "None",
-                            ['SWITCH'] = "On Switch Button",
-                            ['BUTTON'] = "On Quest Button",
+                            ['0_NONE'] = "None",
+                            ['1_SWITCH'] = "On Switch Button",
+                            ['2_BUTTON'] = "On Quest Button",
                         },
-                        get = function() return self:GetDB().itemCountBadge or 'NONE' end,
+                        get = function() 
+                            -- Map stored value back to prefixed key
+                            local val = self:GetDB().itemCountBadge or 'NONE'
+                            if val == 'NONE' then return '0_NONE' end
+                            if val == 'SWITCH' then return '1_SWITCH' end
+                            if val == 'BUTTON' then return '2_BUTTON' end
+                            return '0_NONE'
+                        end,
                         set = function(_, value)
-                            self:GetDB().itemCountBadge = value
+                            -- Strip prefix before storing
+                            local actualValue = 'NONE'
+                            if value == '0_NONE' then actualValue = 'NONE' end
+                            if value == '1_SWITCH' then actualValue = 'SWITCH' end
+                            if value == '2_BUTTON' then actualValue = 'BUTTON' end
+                            
+                            self:GetDB().itemCountBadge = actualValue
                             -- Force update button state to refresh badge visibility
                             if button and button.UpdateState then button:UpdateState() end
                         end,
+                    },
+                    itemCountFontSize = {
+                        order = 6,
+                        type = 'range',
+                        name = "Item Count Font Size",
+                        desc = "Font size for the item count badge",
+                        min = 6, max = 32, step = 1,
+                        get = function() return self:GetDB().itemCountFontSize end,
+                        set = function(_, value)
+                            self:GetDB().itemCountFontSize = value
+                            self:UpdateButton()
+                        end,
+                        disabled = function() return (self:GetDB().itemCountBadge or 'NONE') == 'NONE' end,
                     },
                 },
             },
