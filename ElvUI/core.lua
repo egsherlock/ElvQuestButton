@@ -435,7 +435,8 @@ function EQB:ToggleTestMode()
         end
         
         Debug("Test mode disabled")
-        if EQB.Print then EQB:Print("Test mode disabled") else print("Test mode disabled") end
+        Debug("Test mode disabled")
+        print("|cff00ff00[EQB]|r Test mode disabled")
     else
         -- Enable test mode (always with multi-item support)
         button.testMode = true
@@ -571,7 +572,8 @@ function EQB:ToggleTestMode()
         end)
         
         Debug("Test mode enabled")
-        if EQB.Print then EQB:Print("Test mode enabled") else print("Test mode enabled") end
+        Debug("Test mode enabled")
+        print("|cff00ff00[EQB]|r Test mode enabled")
     end
     
     return button.testMode
