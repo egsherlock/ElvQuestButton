@@ -273,7 +273,7 @@ function EQB:InsertOptions()
                 name = "Fonts & Text",
                 inline = false,
                 args = {
-                    countHeader = { order = 1, type = 'header', name = "Count Text" },
+                    countHeader = { order = 1, type = 'header', name = "Stack Count" },
                     countFont = {
                         order = 2, type = 'select', dialogControl = 'LSM30_Font',
                         name = L["Font"],

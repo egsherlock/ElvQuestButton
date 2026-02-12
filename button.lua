@@ -407,7 +407,13 @@ function addon:CreateExtraButton(extraTemplates)
 		if not settings or not settings.scrollToSwitch then return end
 		if not self.lastNearbyItems or #self.lastNearbyItems < 2 then return end
 
-		if delta > 0 then
+		-- Debounce scroll to prevent rapid firing
+		local now = GetTime()
+		if self.lastScrollTime and (now - self.lastScrollTime) < 0.15 then return end
+		self.lastScrollTime = now
+
+		-- Reversed logic: Scroll Down (negative) = Next Item
+		if delta < 0 then
 			self:SwitchItem()
 		else
 			self:SwitchItemPrevious()

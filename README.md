@@ -39,7 +39,8 @@ Lock the current quest item so it doesn't change automatically when you move bet
 When multiple quest items are detected nearby, switch between them instantly.
 
 *   **Switch Button**: A **Switch icon** (bottom-right of button) appears when multiple items are available. Click to cycle forward through items.
-*   **Scroll to Switch** *(on by default)*: Hover over the button and **scroll the mouse wheel** to cycle through items — scroll up for next, scroll down for previous.
+*   **Scroll to Switch** *(on by default)*: Hover over the button and **scroll the mouse wheel** to cycle through items — scroll down for next, scroll up for previous.
+*   **Debounce**: Switching is rate-limited (0.15s) to prevent skipping items when scrolling fast.
 *   **Automatic Lock on Switch**: When you switch to an item, it is automatically locked so the distance-based logic doesn't revert your choice. Click the Lock icon to unlock if you want auto-switching to resume.
 *   **Combat Safety**: The Switch button desaturates (Grey) and becomes unclickable during combat to comply with protected action restrictions.
 
@@ -54,10 +55,16 @@ Fine-tune when and where the button appears.
 *   **Scale**: Resize the button.
 *   **Alpha**: Adjust button transparency.
 *   **Tools Scale**: Resize the Lock and Switch icons independently.
+*   **Item Count Badge**: Show "1/5" counter on the button or switch icon to indicate multiple available items. Includes font size scaling.
 *   **Hide Cooldown Text**: Hide the countdown numbers on cooldown.
 
 ### ✏️ Fonts & Text
-Fully customisable **Count** and **Keybind** text:
+Fully customisable text for:
+1.  **Stack Count**: The number of items in your bag.
+2.  **Keybind Text**: The hotkey assigned to the button.
+3.  **Item Count Badge**: The "1/5" pager.
+
+Settings include:
 *   Font family (via LibSharedMedia).
 *   Font size.
 *   Font outline (None, Outline, Monochrome, Thick).

@@ -106,8 +106,9 @@ Allowing mouse-wheel scrolling to cycle quest items on a `SecureActionButtonTemp
 *   **`EnableMouseWheel(true)`**: Called during button creation (out of combat) in `button.lua`. This lets the frame receive `OnMouseWheel` events.
 *   **`OnMouseWheel` is non-protected**: The scroll handler is a standard Lua script, not a secure action. It doesn't trigger `SetAttribute` directly — it calls `SwitchItem()` / `SwitchItemPrevious()`, both of which already have `InCombatLockdown()` guards at the top. This means scroll events are silently ignored during combat.
 *   **`HookScript` vs `SetScript`**: We use `HookScript('OnMouseWheel', ...)` rather than `SetScript` to avoid overriding any existing handlers (present or future) on the secure template.
-*   **Direction mapping**: `delta > 0` = scroll up = next item, `delta < 0` = scroll down = previous item.
+*   **Direction mapping**: `delta < 0` = scroll down = next item, `delta > 0` = scroll up = previous item.
 *   **Setting check**: The handler reads `scrollToSwitch` from `addon:GetCurrentSettings()` at call time, so toggling the setting takes effect immediately without a `/reload`.
+*   **Debounce**: A 0.15s cooldown prevents rapid scrolling from skipping over items too quickly or flooding the switch logic.
 
 ### 8. Switching Always Locks
 

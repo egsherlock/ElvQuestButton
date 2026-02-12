@@ -501,6 +501,12 @@ function EQB:ToggleTestMode()
             if not link or not TEST_ICONS[link] then return end
             self.targetItem = link
             self:SetIcon(TEST_ICONS[link])
+            
+            -- Add fake stack counts for testing
+            if link == 'item:2' then self:SetCount(5) -- Red Potion
+            elseif link == 'item:3' then self:SetCount(10) -- Bomb
+            else self:SetCount(0) end
+            
             self:UpdateFeatures()
         end
         

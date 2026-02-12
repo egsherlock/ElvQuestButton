@@ -45,6 +45,6 @@ A list of potential improvements identified during development. Items are marked
 - **Fix**: Periodically diff against [p3lim's data.lua](https://github.com/p3lim-wow/ExtraQuestButton/blob/master/data.lua) and merge new entries.
 
 ### 7. Debounce Scroll-to-Switch
-- [ ] TODO
+- [x] **DONE**
 - **Problem**: Aggressive scrolling can trigger many rapid `SwitchItem()` / `SwitchItemPrevious()` calls in quick succession.
-- **Fix**: Add a small cooldown (~0.15s) between scroll-triggered switches for a smoother feel.
+- **Fix**: Added ~0.15s cooldown check in `OnMouseWheel` handler.

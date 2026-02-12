@@ -33,12 +33,14 @@ local moduleDefaults = {
     
     -- Fonts & Text
     countFont = 'Expressway',
-    countFontSize = 14,
+    -- Default changed to 12 as requested
+    countFontSize = 12,
     countFontOutline = 'OUTLINE',
     countXOffset = 0,
     countYOffset = 0,
     
     hotkeyFont = 'Expressway',
+    -- Reverted to 14
     hotkeyFontSize = 14,
     hotkeyFontOutline = 'OUTLINE',
     hotkeyXOffset = 0,
@@ -48,7 +50,8 @@ local moduleDefaults = {
     lockScale = 1,
     
     -- Item Count Badge
-    itemCountFontSize = 10,
+    -- Default changed to 12 as requested
+    itemCountFontSize = 12,
 }
 
 -- Add to ElvUI profile defaults
