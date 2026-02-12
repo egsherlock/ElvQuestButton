@@ -33,13 +33,13 @@ local moduleDefaults = {
     
     -- Fonts & Text
     countFont = 'Expressway',
-    countFontSize = 16,
+    countFontSize = 14,
     countFontOutline = 'OUTLINE',
     countXOffset = 0,
     countYOffset = 0,
     
     hotkeyFont = 'Expressway',
-    hotkeyFontSize = 16,
+    hotkeyFontSize = 14,
     hotkeyFontOutline = 'OUTLINE',
     hotkeyXOffset = 0,
     hotkeyYOffset = 0,
