@@ -134,6 +134,37 @@ function buttonMixin:UpdateChecked()
 	end
 end
 
+function buttonMixin:UpdateItemBadge(current, total)
+    -- Get settings from wherever they're stored (ElvUI or standalone)
+    local settings = addon:GetCurrentSettings()
+    local mode = settings and settings.itemCountBadge or 'NONE'
+    
+    if self.ItemIndex then self.ItemIndex:Hide() end
+    
+    if self.SwitchButton then
+        if self.SwitchButton.Text then self.SwitchButton.Text:Hide() end
+        -- Restore icon visibility by default
+        local texture = self.SwitchButton:GetNormalTexture()
+        if texture then texture:SetAlpha(1) end
+    end
+    
+    if mode == 'NONE' or total <= 1 or current == 0 then return end
+    
+    local text = current .. "/" .. total
+    
+    if mode == 'BUTTON' and self.ItemIndex then
+        self.ItemIndex:SetText(text)
+        self.ItemIndex:Show()
+    elseif mode == 'SWITCH' and self.SwitchButton and self.SwitchButton.Text then
+        self.SwitchButton.Text:SetText(text)
+        self.SwitchButton.Text:Show()
+        
+        -- Hide the icon so it doesn't clash with the text
+        local texture = self.SwitchButton:GetNormalTexture()
+        if texture then texture:SetAlpha(0) end
+    end
+end
+
 function buttonMixin:UpdateFeatures()
     if not self.FeaturesFrame then return end
     
@@ -219,6 +250,12 @@ function addon:CreateExtraButton(extraTemplates)
 	Count:SetPoint('BOTTOMRIGHT', -6, 6)
 	Count:SetJustifyH('RIGHT')
 	Button.Count = Count
+	
+	local ItemIndex = overlayParent:CreateFontString('$parentItemIndex', 'ARTWORK', 'NumberFontNormal')
+	ItemIndex:SetPoint('BOTTOMLEFT', 6, 6)
+	ItemIndex:SetJustifyH('LEFT')
+	Button.ItemIndex = ItemIndex
+
 
 	-- TODO: cooldown renderes above all of the following textures, fix that
 	local NormalTexture = Button:CreateTexture('$parentNormalTexture')
@@ -325,6 +362,10 @@ function addon:CreateExtraButton(extraTemplates)
 	local SwitchButton = CreateFrame('Button', '$parentSwitch', FeaturesFrame)
 	SwitchButton:SetSize(16, 16)
 	SwitchButton:SetPoint('RIGHT', FeaturesFrame, 'RIGHT', -8, 0)
+	
+	local SwitchText = SwitchButton:CreateFontString(nil, 'OVERLAY', 'NumberFontNormalSmall')
+	SwitchText:SetPoint('CENTER', 0, 0)
+	SwitchButton.Text = SwitchText
 	
 	local SwitchTexture = SwitchButton:CreateTexture(nil, 'ARTWORK')
 	SwitchTexture:SetAllPoints()

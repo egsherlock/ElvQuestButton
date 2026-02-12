@@ -375,6 +375,15 @@ function EQB:ToggleTestMode()
     local button = _G.ElvQuestButton or _G[addonName]
     if not button then return end
     
+    if InCombatLockdown() then
+        if EQB.Print then
+            EQB:Print("Cannot toggle test mode in combat")
+        else
+            print("|cff00ff00[ElvQuestButton]|r Cannot toggle test mode in combat")
+        end
+        return
+    end
+
     if button.testMode then
         -- Disable test mode
         button.testMode = nil
@@ -426,6 +435,7 @@ function EQB:ToggleTestMode()
         end
         
         Debug("Test mode disabled")
+        if EQB.Print then EQB:Print("Test mode disabled") else print("Test mode disabled") end
     else
         -- Enable test mode (always with multi-item support)
         button.testMode = true
@@ -497,6 +507,21 @@ function EQB:ToggleTestMode()
             if self.UpdateFeatures then
                 self:UpdateFeatures()
             end
+            
+            if self.UpdateItemBadge then
+                local total = self.lastNearbyItems and #self.lastNearbyItems or 0
+                local current = 0
+                local currentItem = self.lockedItemLink or self.targetItem
+                if currentItem and total > 0 then
+                    for i, link in ipairs(self.lastNearbyItems) do
+                        if link == currentItem then
+                            current = i
+                            break
+                        end
+                    end
+                end
+                self:UpdateItemBadge(current, total)
+            end
         end
         
         -- Show with initial test icon
@@ -507,6 +532,11 @@ function EQB:ToggleTestMode()
         
         -- Trigger initial feature update (shows Switch icon for multi-item)
         button:UpdateFeatures()
+        
+        -- Trigger initial badge update
+        if button.UpdateItemBadge then
+            button:UpdateItemBadge(1, #button.lastNearbyItems)
+        end
         
         -- Ensure skinning is applied
         if not button.__elvuiSkinned then
@@ -541,6 +571,7 @@ function EQB:ToggleTestMode()
         end)
         
         Debug("Test mode enabled")
+        if EQB.Print then EQB:Print("Test mode enabled") else print("Test mode enabled") end
     end
     
     return button.testMode

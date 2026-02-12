@@ -28,6 +28,7 @@ addon.DEFAULTS = {
     distanceYd = 1000,
     autoLockOnUse = true,
     scrollToSwitch = true,
+    itemCountBadge = 'NONE',
 }
 
 -- Attribute handler for secure button behavior
@@ -216,9 +217,25 @@ function coreMixin:UpdateState()
         self:Reset()
     end
     
+    -- Calculate index and count for badge
+    local total = self.lastNearbyItems and #self.lastNearbyItems or 0
+    local current = 0
+    if itemLink and total > 0 then
+        for i, link in ipairs(self.lastNearbyItems) do
+            if link == itemLink then
+                current = i
+                break
+            end
+        end
+    end
+    
     -- Update UI bits (Lock/Switch buttons)
     if self.UpdateFeatures then
         self:UpdateFeatures()
+    end
+    
+    if self.UpdateItemBadge then
+        self:UpdateItemBadge(current, total)
     end
 end
 

@@ -219,6 +219,23 @@ function EQB:InsertOptions()
                             end
                         end,
                     },
+                    itemCountBadge = {
+                        order = 5,
+                        type = 'select',
+                        name = "Item Count Badge",
+                        desc = "Show which item you're on out of how many are available (e.g. '2/5').",
+                        values = {
+                            ['NONE'] = "None",
+                            ['SWITCH'] = "On Switch Button",
+                            ['BUTTON'] = "On Quest Button",
+                        },
+                        get = function() return self:GetDB().itemCountBadge or 'NONE' end,
+                        set = function(_, value)
+                            self:GetDB().itemCountBadge = value
+                            -- Force update button state to refresh badge visibility
+                            if button and button.UpdateState then button:UpdateState() end
+                        end,
+                    },
                 },
             },
             

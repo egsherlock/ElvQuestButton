@@ -165,7 +165,15 @@ f:SetScript("OnEvent", function(self, event)
     if event == "PLAYER_LOGIN" then
         -- Initialize after a short delay to ensure everything is ready
         C_Timer.After(0.5, function()
-            EQB:Initialize()
+            if InCombatLockdown() then
+                -- Defend against combat lockout by waiting for RegenEnabled
+                EQB:RegisterEvent("PLAYER_REGEN_ENABLED", function(event)
+                    EQB:UnregisterEvent(event)
+                    EQB:Initialize()
+                end)
+            else
+                EQB:Initialize()
+            end
         end)
         self:UnregisterEvent("PLAYER_LOGIN")
     end
