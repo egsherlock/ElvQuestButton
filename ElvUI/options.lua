@@ -28,7 +28,9 @@ function EQB:InsertOptions()
             description = {
                 order = 2,
                 type = 'description',
-                name = 'Displays a button for quest items in your bags.\nPosition using: |cff00ff00/moveui|r\n\n',
+                name = 'Automatically detects and displays quest items based on proximity to objectives. The closest quest item is shown on the button — click it to use.\n\n'
+                    .. '|cff00ff00Position|r: |cffffffffUse |cff00ff00/moveui|r |cffffffffto drag the button.|r\n'
+                    .. '|cff00ff00Keybind|r: |cffffffffUse |cff00ff00/kb|r |cffffffffthen hover over the button to bind a key.|r\n\n',
             },
             
             -- Group 1: General (Core Toggles)
@@ -66,11 +68,11 @@ function EQB:InsertOptions()
                         name = function()
                             return self:IsTestMode() and "Hide Test Button" or "Show Test Button"
                         end,
-                        desc = "Show/hide a preview of the button with a sample icon to verify styling",
+                        desc = "Show/hide a preview of the button with sample icons to verify styling, Lock and Switch features",
                          func = function()
-                            local isOn = self:ToggleTestMode()
+                            self:ToggleTestMode()
                             -- Force options refresh to update button label
-                            E:UpdateOptions()
+                            LibStub('AceConfigRegistry-3.0'):NotifyChange('ElvUI')
                         end,
                     },
                 },
@@ -86,7 +88,7 @@ function EQB:InsertOptions()
                     instructions = {
                         order = 0,
                         type = 'description',
-                        name = "Configure how and when the button appears.",
+                        name = "Configure how and when the button appears. When multiple quest items are nearby, use the Switch button or scroll wheel to cycle between them.",
                         fontSize = 'medium',
                     },
                     trackingOnly = {
@@ -113,7 +115,7 @@ function EQB:InsertOptions()
                         order = 3,
                         type = 'toggle',
                         name = "Auto-Lock After Use",
-                        desc = "Automatically lock the quest item after clicking it, so it won't swap to a different item. Unlocks when the quest completes or you leave the area.",
+                        desc = "Automatically lock the quest item after using it, preventing auto-switch to a different item. The lock is released when the quest completes or you leave the area.\n\nYou can always toggle the lock manually via the Lock icon (bottom-left of button).",
                         get = function() return self:GetDB().autoLockOnUse == true end,
                         set = function(_, value)
                             self:GetDB().autoLockOnUse = value and true or false
@@ -127,28 +129,18 @@ function EQB:InsertOptions()
                             end
                         end,
                     },
-                    lockOnSwitch = {
+                    scrollToSwitch = {
                         order = 4,
                         type = 'toggle',
-                        name = "Lock on Switch",
-                        desc = "Automatically lock the quest item when using the Switch button to cycle between items",
-                        get = function() return self:GetDB().lockOnSwitch end,
-                        set = function(_, value)
-                            self:GetDB().lockOnSwitch = value
-                        end,
-                    },
-                    scrollToSwitch = {
-                        order = 5,
-                        type = 'toggle',
                         name = "Scroll to Switch",
-                        desc = "Scroll the mouse wheel while hovering the button to cycle between available quest items",
+                        desc = "Scroll the mouse wheel while hovering the button to cycle between available quest items.\n\nSwitching (via scroll or the Switch button) always locks to the selected item, preventing auto-switch until the quest completes, you leave the area, or you unlock manually.",
                         get = function() return self:GetDB().scrollToSwitch end,
                         set = function(_, value)
                             self:GetDB().scrollToSwitch = value
                         end,
                     },
                     distanceYd = {
-                        order = 6,
+                        order = 5,
                         type = 'range',
                         name = "Tracking Distance",
                         desc = "Maximum distance in yards to show quest items",

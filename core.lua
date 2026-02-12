@@ -27,7 +27,6 @@ addon.DEFAULTS = {
     zoneOnly = false,
     distanceYd = 1000,
     autoLockOnUse = true,
-    lockOnSwitch = true,
     scrollToSwitch = true,
 }
 
@@ -108,8 +107,7 @@ function coreMixin:UpdateBinding()
         -- trigger a state update for the binding
         self:SetAttribute('binding', GetTime())
         
-        -- Always listen for entering combat to update visuals (Switch/Lock icons)
-        self:RegisterEvent('PLAYER_REGEN_DISABLED')
+
     else
         addon:DeferMethod(self, 'UpdateBinding')
     end
@@ -265,19 +263,11 @@ function coreMixin:SwitchItem()
     end
     
     if nextItem then
-        local settings = addon:GetCurrentSettings()
-        if settings and settings.lockOnSwitch then
-            self:SetLockedItem(nextItem)
-            self:UpdateState()
-        else
-            -- Just set the item directly without locking
-            -- Don't call UpdateState here as it would immediately revert
-            -- to the closest item since there's no lock
-            self:SetItem(nextItem)
-            if self.UpdateFeatures then
-                self:UpdateFeatures()
-            end
-        end
+        -- Always lock when switching. Switching without locking is
+        -- meaningless — the 2-second UpdateState ticker would revert
+        -- the display back to the closest/locked item on the next cycle.
+        self:SetLockedItem(nextItem)
+        self:UpdateState()
     end
 end
 
@@ -304,16 +294,8 @@ function coreMixin:SwitchItemPrevious()
     end
     
     if prevItem then
-        local settings = addon:GetCurrentSettings()
-        if settings and settings.lockOnSwitch then
-            self:SetLockedItem(prevItem)
-            self:UpdateState()
-        else
-            self:SetItem(prevItem)
-            if self.UpdateFeatures then
-                self:UpdateFeatures()
-            end
-        end
+        self:SetLockedItem(prevItem)
+        self:UpdateState()
     end
 end
 

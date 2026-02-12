@@ -371,15 +371,47 @@ end
     Useful for verifying skinning, shadows, and positioning.
 ]]
 
-function EQB:ToggleTestMode(mode)
+function EQB:ToggleTestMode()
     local button = _G.ElvQuestButton or _G[addonName]
     if not button then return end
     
-    if button.testMode and not mode then
+    if button.testMode then
         -- Disable test mode
         button.testMode = nil
         button.editing = false
         button.lastNearbyItems = nil -- clear test items
+        button.lockedItemLink = nil  -- clear any test locks
+        button.targetItem = nil      -- clear test item tracking
+        
+        -- Restore ALL original methods
+        if button._origSetItem then
+            button.SetItem = button._origSetItem
+            button._origSetItem = nil
+        end
+        if button._origGetItemLink then
+            button.GetItemLink = button._origGetItemLink
+            button._origGetItemLink = nil
+        end
+        if button._origUpdateAttributes then
+            button.UpdateAttributes = button._origUpdateAttributes
+            button._origUpdateAttributes = nil
+        end
+        if button._origUpdateCount then
+            button.UpdateCount = button._origUpdateCount
+            button._origUpdateCount = nil
+        end
+        if button._origUpdateCooldown then
+            button.UpdateCooldown = button._origUpdateCooldown
+            button._origUpdateCooldown = nil
+        end
+        if button._origUpdateChecked then
+            button.UpdateChecked = button._origUpdateChecked
+            button._origUpdateChecked = nil
+        end
+        if button._origUpdateState then
+            button.UpdateState = button._origUpdateState
+            button._origUpdateState = nil
+        end
         
         -- Reset icon
         button:SetIcon(nil)
@@ -395,46 +427,86 @@ function EQB:ToggleTestMode(mode)
         
         Debug("Test mode disabled")
     else
-        -- Enable test mode
+        -- Enable test mode (always with multi-item support)
         button.testMode = true
         button.editing = true  -- Prevents normal state updates from hiding
         
         -- Bypass state driver
         UnregisterStateDriver(button, 'visible')
-        button:SetAttribute('item', 'test')  -- Fake item to prevent hiding logic
+        button:SetAttribute('item', 'test')  -- Fake item attribute
         
-        -- Show with test icon
-        button:SetIcon([[Interface\Icons\INV_Misc_QuestionMark]])
+        -- Icon map for test items (using numeric FileDataIDs for reliability)
+        -- These are well-known icons guaranteed to exist in every WoW client
+        local TEST_ICONS = {
+            ['item:1'] = 134414,  -- Hearthstone (INV_Misc_Rune_01)
+            ['item:2'] = 134830,  -- Red Potion (INV_Potion_91)
+            ['item:3'] = 133710,  -- Bomb (INV_Misc_Bomb_02)
+            ['item:4'] = 134938,  -- Scroll (INV_Scroll_03)
+            ['item:5'] = 134245,  -- Key (INV_Misc_Key_04)
+        }
+        
+        -- Setup multi-item test data
+        button.lastNearbyItems = {
+            'item:1',
+            'item:2',
+            'item:3',
+            'item:4',
+            'item:5',
+        }
+        
+        -- Track current test item
+        button.targetItem = 'item:1'
+        
+        -- Save ALL original methods
+        button._origSetItem = button.SetItem
+        button._origGetItemLink = button.GetItemLink
+        button._origUpdateAttributes = button.UpdateAttributes
+        button._origUpdateCount = button.UpdateCount
+        button._origUpdateCooldown = button.UpdateCooldown
+        button._origUpdateChecked = button.UpdateChecked
+        button._origUpdateState = button.UpdateState
+        
+        -- Override SetItem: track the current item and update the icon
+        button.SetItem = function(self, link)
+            if not link or not TEST_ICONS[link] then return end
+            self.targetItem = link
+            self:SetIcon(TEST_ICONS[link])
+            self:UpdateFeatures()
+        end
+        
+        -- Override GetItemLink: return the currently selected test item
+        button.GetItemLink = function(self)
+            return self.targetItem
+        end
+        
+        -- No-op overrides: prevent WoW API calls on our fake items
+        button.UpdateAttributes = function() end
+        button.UpdateCount = function() end
+        button.UpdateCooldown = function() end
+        button.UpdateChecked = function() end
+        
+        -- Override UpdateState: mirror real logic for lock→display chain
+        -- This prevents the real UpdateState from wiping test data or calling
+        -- WoW APIs, while still handling the lock-switch-display flow correctly.
+        button.UpdateState = function(self)
+            -- If locked item changed (e.g. via SwitchItem), update display
+            local displayItem = self.lockedItemLink or self.targetItem
+            if displayItem and displayItem ~= self.targetItem then
+                self:SetItem(displayItem)
+            end
+            if self.UpdateFeatures then
+                self:UpdateFeatures()
+            end
+        end
+        
+        -- Show with initial test icon
+        button:SetIcon(TEST_ICONS['item:1'])
         button:ClearCooldown()
         button:SetCount(0)
         button:Show()
         
-        -- Mock Multi-Item Mode
-        if mode == 'multi' then
-             button.lastNearbyItems = {
-                 'item:1', -- Fake links
-                 'item:2',
-                 'item:3'
-             }
-             -- Override SetItem to just change the icon for visual feeback
-             button.SetItem = function(self, link)
-                 if link == 'item:1' then self:SetIcon([[Interface\Icons\INV_Misc_QuestionMark]])
-                 elseif link == 'item:2' then self:SetIcon([[Interface\Icons\INV_ChooseExclamation]])
-                 elseif link == 'item:3' then self:SetIcon([[Interface\Icons\INV_Misc_Coin_17]]) end
-                 -- self.targetItem = link -- Removed to prevent breaking UpdateState logic
-                 self:UpdateFeatures()
-             end
-             -- Override GetItemLink to return our fake link
-             button.GetItemLink = function(self)
-                 return self.targetItem
-             end
-             
-             -- Trigger initial item
-             button:SetItem('item:1')
-             Debug("Test mode enabled (Multi-Item)")
-        else
-            Debug("Test mode enabled")
-        end
+        -- Trigger initial feature update (shows Switch icon for multi-item)
+        button:UpdateFeatures()
         
         -- Ensure skinning is applied
         if not button.__elvuiSkinned then
@@ -467,6 +539,8 @@ function EQB:ToggleTestMode(mode)
                 self:ApplyShadow()
             end
         end)
+        
+        Debug("Test mode enabled")
     end
     
     return button.testMode

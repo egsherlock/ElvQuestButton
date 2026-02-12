@@ -66,7 +66,9 @@ function button:OnLoad()
     self:RegisterEvent('ZONE_CHANGED_NEW_AREA', self.ScheduleUpdate)
     self:RegisterEvent('PLAYER_INSIDE_QUEST_BLOB_STATE_CHANGED', self.ScheduleUpdate)
     self:RegisterEvent('WAYPOINT_UPDATE', self.ScheduleUpdate)
-    self:RegisterEvent('BAG_UPDATE_DELAYED', self.ScheduleUpdate)
+    -- BAG_UPDATE_DELAYED is NOT re-registered here for ScheduleUpdate.
+    -- UpdateCount (line 42) already handles bag changes and calls UpdateState
+    -- when the item count drops to 0, so a duplicate registration is unnecessary.
     self:RegisterUnitEvent('UNIT_AURA', 'player', self.ScheduleUpdate)
     
     -- Some items are used directly on targets
@@ -125,15 +127,18 @@ _G['BINDING_NAME_' .. addonName:upper()] = addonName
 
 -- Slash command
 addon:RegisterSlash('/eqb', function(msg)
-    if msg == 'test' or msg == 'multi' then
-         if addon.ElvUIModule then
-            addon.ElvUIModule:ToggleTestMode(msg)
-         end
-         return
+    if msg == 'test' then
+        -- Toggle test mode (same as the button in the ElvUI options panel)
+        if addon.ElvUIModule then
+            addon.ElvUIModule:ToggleTestMode()
+        end
+        return
     end
 
+    -- No argument: open the ElvQuestButton settings page
     if button.elvuiManaged then
-        addon:Print('Configure in ElvUI settings: /ec')
+        local E = unpack(_G.ElvUI)
+        E:ToggleOptions('elvQuestButton')
     else
         addon:Print('Configure in Edit Mode (ESC → Edit Mode)')
     end

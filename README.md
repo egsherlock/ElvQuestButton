@@ -25,14 +25,14 @@ Inspired by the excellent [ExtraQuestButton](https://github.com/p3lim-wow/ExtraQ
 *   Applies the distinct WindTools **Shadow** and **Vignette** styles for a premium look consistent with your UI.
 
 ### 🔒 Locking
-Lock the current quest item so it doesn't change automatically when you move between objectives.
+Lock the current quest item so it doesn't change automatically when you move between objectives. The lock persists until the quest completes, you leave the area, or you manually unlock.
 
 *   **Manual Lock**: Click the **Lock icon** (bottom-left of button) to toggle the lock on/off.
-*   **Auto-Lock After Use** *(on by default)*: Clicking the quest item automatically locks it to prevent it from swapping while you're still working on that quest. Unlocks when the quest completes or you leave the area.
-*   **Lock on Switch** *(on by default)*: When switching to a different quest item (via the Switch button or scroll wheel), the new item is automatically locked so it stays put.
+*   **Auto-Lock After Use** *(on by default)*: Clicking the quest item automatically locks it to prevent it from swapping while you're still working on that quest.
+*   **Switching Always Locks**: When you switch to a different quest item (via the Switch button or scroll wheel), the new item is automatically locked. This ensures your manual selection is respected and the distance-based auto-switching won't revert it.
 *   **Visuals**:
-    *   🟡 **Gold Lock**: Item is locked (manually or automatically).
-    *   ⚪ **Grey Lock**: Item is unlocked.
+    *   🟡 **Gold Lock**: Item is locked (manually, after use, or after switching).
+    *   ⚪ **Grey Lock**: Item is unlocked — auto-switching is active.
     *   ⚔️ **Combat**: Automatically locks (Gold) to prevent taint. Unlock is deferred until combat ends.
 
 ### 🔄 Quick Switch
@@ -40,6 +40,7 @@ When multiple quest items are detected nearby, switch between them instantly.
 
 *   **Switch Button**: A **Switch icon** (bottom-right of button) appears when multiple items are available. Click to cycle forward through items.
 *   **Scroll to Switch** *(on by default)*: Hover over the button and **scroll the mouse wheel** to cycle through items — scroll up for next, scroll down for previous.
+*   **Automatic Lock on Switch**: When you switch to an item, it is automatically locked so the distance-based logic doesn't revert your choice. Click the Lock icon to unlock if you want auto-switching to resume.
 *   **Combat Safety**: The Switch button desaturates (Grey) and becomes unclickable during combat to comply with protected action restrictions.
 
 ### 🎯 Quest Logic
@@ -76,9 +77,8 @@ If ElvUI is not installed, the addon falls back to **LibEditMode** integration:
 3.  *(Optional)* Install **ElvUI_WindTools** for enhanced shadow visuals.
 
 ### Commands
-*   `/eqb` — Open configuration (redirects to ElvUI settings or Edit Mode).
-*   `/eqb test` — Toggle test mode to preview the button with a sample icon.
-*   `/eqb multi` — Toggle multi-item test mode to preview Quick Switch and Locking features.
+*   `/eqb` — Open the ElvQuestButton settings page (in ElvUI config, or directs to Edit Mode in standalone).
+*   `/eqb test` — Toggle test mode to preview the button with sample icons, Lock and Switch features.
 
 ## ⚙️ Configuration
 
@@ -87,7 +87,7 @@ Open the ElvUI config: `/ec` → **ElvQuestButton**
 
 Settings are organised into four groups:
 1.  **General**: Enable/disable, Global Fade inheritance, Test Mode.
-2.  **Quest Logic**: Tracking filters, auto-lock, lock-on-switch, scroll-to-switch, tracking distance.
+2.  **Quest Logic**: Tracking filters, auto-lock after use, scroll-to-switch, tracking distance.
 3.  **Button Appearance**: Scale, alpha, tools scale, cooldown text.
 4.  **Fonts & Text**: Full font customisation for count and keybind text.
 

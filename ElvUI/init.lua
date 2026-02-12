@@ -29,7 +29,6 @@ local moduleDefaults = {
     distanceYd = 1000,
     inheritGlobalFade = false,
     autoLockOnUse = true,
-    lockOnSwitch = true,
     scrollToSwitch = true,
     
     -- Fonts & Text

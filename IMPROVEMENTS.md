@@ -12,7 +12,7 @@ A list of potential improvements identified during development. Items are marked
 - **Fix**: Replace direct `UpdateState` event bindings with a `ScheduleUpdate()` method that uses a dirty flag + `C_Timer.After(0)` to coalesce all same-frame events into a single update on the next frame. The 2-second ticker remains for distance polling.
 
 ### 2. Guard `BAG_UPDATE_DELAYED` Double-Registration
-- [ ] TODO
+- [x] **DONE**
 - **Problem**: In `addon.lua`, `BAG_UPDATE_DELAYED` is registered twice — once for `UpdateCount` and once for `UpdateState`. The `UpdateCount` handler already calls `UpdateState()` when count hits 0, so the direct `UpdateState` registration causes double work on every bag update.
 - **Fix**: Remove the duplicate `BAG_UPDATE_DELAYED` → `UpdateState` registration. `UpdateCount` already handles the edge case.
 

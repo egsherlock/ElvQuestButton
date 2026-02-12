@@ -41,10 +41,11 @@ This dual approach ensures the UI feels responsive and accurate (using events) w
 The 12.0 API introduced "Secret Values" to obfuscate certain data from addons to prevent combat automation. We carefully structured our detection logic (in `core.lua`) to avoid relying on protected values for critical decision-making paths that feed into `SetAttribute`.
 
 ### 3. Test Mode Simulation
-Testing quest items without being in a specific zone is difficult. We implemented a robust **Test Mode** (`/eqb test` and `/eqb multi`) that:
-*   Mocks the `GetNearbyQuestItems` return values.
-*   Overrides `GetItemLink` and `SetItem` on the button instance temporarily.
+Testing quest items without being in a specific zone is difficult. We implemented a robust **Test Mode** (`/eqb test`) that:
+*   Mocks the `GetNearbyQuestItems` return values with 5 fake items (using numeric FileDataIDs for reliable icons).
+*   Overrides `GetItemLink` and `SetItem` on the button instance temporarily (originals are saved and restored on disable).
 *   Allows UI verification of Locking/Switching logic anywhere in the world.
+*   Is the exact same code path whether invoked via `/eqb test` or the "Show Test Button" button in the ElvUI options panel.
 
 Integrating with WindTools requires precise frame parenting. The "Shadow" frame must be parented to `button.backdrop` (if it exists) or the button itself, and its frame level must be managed carefully to appear *behind* the button content but *above* the background.
 
@@ -107,12 +108,13 @@ Allowing mouse-wheel scrolling to cycle quest items on a `SecureActionButtonTemp
 *   **Direction mapping**: `delta > 0` = scroll up = next item, `delta < 0` = scroll down = previous item.
 *   **Setting check**: The handler reads `scrollToSwitch` from `addon:GetCurrentSettings()` at call time, so toggling the setting takes effect immediately without a `/reload`.
 
-### 8. Lock on Switch Behaviour
+### 8. Switching Always Locks
 
-The `SwitchItem()` and `SwitchItemPrevious()` functions support two modes controlled by `settings.lockOnSwitch`:
+`SwitchItem()` and `SwitchItemPrevious()` **always** call `SetLockedItem(nextItem)` followed by `UpdateState()`. There is no setting to control this — switching implicitly locks.
 
-*   **Lock ON (default)**: Calls `SetLockedItem(nextItem)` then `UpdateState()`. The lock ensures the item persists across update cycles.
-*   **Lock OFF**: Calls `SetItem(nextItem)` directly, then `UpdateFeatures()` (NOT `UpdateState`). This is intentional — calling `UpdateState()` without a lock would immediately re-evaluate the closest item and revert the switch, causing a visual flicker. `SetItem()` handles all the display updates (icon, count, attributes) without triggering a proximity re-check.
+**Why?** Previously there was a `lockOnSwitch` setting that controlled this. When disabled, switching called `SetItem()` directly without setting a lock. The problem: the 2-second `UpdateState` ticker would immediately re-evaluate the closest item and revert the display back to whatever the distance logic preferred. This created a "fighting" effect where the user would scroll to an item, only to see it snap back 0–2 seconds later. Worse, if the user had a manual lock active and then switched with `lockOnSwitch = false`, the lock stayed on the *old* item — and the ticker would revert the display to it.
+
+The fix was to remove the `lockOnSwitch` toggle entirely and always lock on switch. This is the only design that makes sense: if you manually select an item, you obviously want it to stay. If you want auto-switching to resume, click the Lock icon to unlock.
 
 ### 9. The `trackingOnly` Inversion Bug
 
@@ -140,5 +142,5 @@ Now loop 3 correctly adds all visible quest log entries when `trackingOnly` is o
 ## 🤝 Contributing
 1.  Fork the repo.
 2.  Make your changes.
-3.  Ensure `/eqb multi` works without errors.
+3.  Ensure `/eqb test` works without errors.
 4.  Submit a Pull Request.
