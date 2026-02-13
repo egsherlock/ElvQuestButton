@@ -54,7 +54,7 @@ Integrating with WindTools requires precise frame parenting. The "Shadow" frame 
 A critical race condition exists when ElvUI modules initialize. ElvUI loads its database (`E.db`) very early, but modules often initialize slightly later (delayed after `PLAYER_LOGIN`) to ensure other dependencies are ready.
 
 *   **The Trap**: Relying solely on a module's `Initialized` flag in your settings accessor (e.g., `addon:GetCurrentSettings()`) is risky. If an event fires (like a button click) before the module flags itself ready, the accessor might fall back to hardcoded `DEFAULTS`.
-*   **The Fix**: In `ElvUI/init.lua`, we modified the accessor to peek directly at `E.db.elvQuestButton` as a priority fallback. If the table exists in ElvUI's DB, we use it immediately, regardless of the module's internal state. This prevents settings from silently reverting to defaults during startup or reload.
+*   **The Fix**: In `ElvUI/init.lua`, we modified the accessor to peek directly at `E.global.elvQuestButton` (Global DB) as a priority fallback. If the table exists in ElvUI's Global DB, we use it immediately. Note that we moved from Profile DB (`E.db`) to Global DB (`E.global`) to ensure settings persist across profile switches while keeping mover positions profile-specific.
 
 ### 6. ElvUI `/kb` Keybind Integration
 
