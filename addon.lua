@@ -94,6 +94,9 @@ button:HookScript('PostClick', function(self)
     if not settings then return end
     if settings.autoLockOnUse ~= true then return end
 
+    -- Only auto-lock if we have multiple items (locking is meaningless with only 1 item)
+    if not self.lastNearbyItems or #self.lastNearbyItems <= 1 then return end
+
     local link = self:GetItemLink()
     if link and not self.lockedItemLink then
         self:SetLockedItem(link)

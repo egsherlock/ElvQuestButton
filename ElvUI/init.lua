@@ -28,7 +28,7 @@ local moduleDefaults = {
     zoneOnly = false,
     distanceYd = 1000,
     inheritGlobalFade = false,
-    autoLockOnUse = true,
+    autoLockOnUse = false,
     scrollToSwitch = true,
     
     -- Fonts & Text
@@ -49,7 +49,7 @@ local moduleDefaults = {
     
     -- Item Count Badge
     itemCountFontSize = 12,
-    itemCountBadge = 'NONE',
+    itemCountBadge = 'SWITCH',
     
     -- Migration Flag
     migratedFromProfile = false,

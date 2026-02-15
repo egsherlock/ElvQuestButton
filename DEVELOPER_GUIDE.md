@@ -141,7 +141,15 @@ This meant when `trackingOnly` was `false` (default), **no** regular quest log e
 
 Now loop 3 correctly adds all visible quest log entries when `trackingOnly` is off, and skips them (relying on loops 1 & 2 for tracked-only items) when `trackingOnly` is on.
 
-## 🤝 Contributing
+### 10. Smart Locking Logic
+ 
+To prevent users from being "stuck" on a quest item when they have no other options, and to reduce UI clutter, we implemented smart locking behavior:
+ 
+ 1.  **Visibility**: The Lock button (and Switch button) is hidden if only 1 quest item is nearby (`buttonMixin:UpdateFeatures`).
+ 2.  **Auto-Unlock**: If the number of nearby items drops to 1 (e.g., user completes a quest or moves away from others), any existing lock is automatically cleared in `coreMixin:UpdateState()`. This ensures that if a new item appears later, the logic isn't stuck prioritizing the old locked item.
+ 3.  **Prevent Auto-Lock**: The `PostClick` hook in `addon.lua` checks `#self.lastNearbyItems > 1` before applying the "Auto-Lock on Use".
+ 
+ ## 🤝 Contributing
 1.  Fork the repo.
 2.  Make your changes.
 3.  Ensure `/eqb test` works without errors.

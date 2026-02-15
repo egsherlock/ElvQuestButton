@@ -168,19 +168,27 @@ end
 function buttonMixin:UpdateFeatures()
     if not self.FeaturesFrame then return end
     
-    -- Update Lock Button State
-    if self.inCombat or self.lockedItemLink then
-        self.LockButton:SetChecked(true)
-        self.LockButton:GetNormalTexture():SetVertexColor(1, 0.8, 0) -- Gold for locked
-        self.LockButton:SetAlpha(1)
+    -- Only show features if we have multiple items
+    local multipleItems = self.lastNearbyItems and #self.lastNearbyItems > 1
+    
+    -- Update Lock Button State & Visibility
+    if multipleItems then
+        if self.inCombat or self.lockedItemLink then
+            self.LockButton:SetChecked(true)
+            self.LockButton:GetNormalTexture():SetVertexColor(1, 0.8, 0) -- Gold for locked
+            self.LockButton:SetAlpha(1)
+        else
+            self.LockButton:SetChecked(false)
+            self.LockButton:GetNormalTexture():SetVertexColor(0.7, 0.7, 0.7) -- Grey for unlocked
+             self.LockButton:SetAlpha(0.6)
+        end
+        self.LockButton:Show()
     else
-        self.LockButton:SetChecked(false)
-        self.LockButton:GetNormalTexture():SetVertexColor(0.7, 0.7, 0.7) -- Grey for unlocked
-         self.LockButton:SetAlpha(0.6)
+        self.LockButton:Hide()
     end
     
     -- Switch Button Visibility
-    if self.lastNearbyItems and #self.lastNearbyItems > 1 then
+    if multipleItems then
         self.SwitchButton:Show()
         if self.inCombat then
             self.SwitchButton:GetNormalTexture():SetDesaturated(true)

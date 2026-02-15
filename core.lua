@@ -26,9 +26,9 @@ addon.DEFAULTS = {
     trackingOnly = false,
     zoneOnly = false,
     distanceYd = 1000,
-    autoLockOnUse = true,
+    autoLockOnUse = false,
     scrollToSwitch = true,
-    itemCountBadge = 'NONE',
+    itemCountBadge = 'SWITCH',
 }
 
 -- Attribute handler for secure button behavior
@@ -177,6 +177,11 @@ function coreMixin:UpdateState()
              end
             
             if nearbyItems and #nearbyItems > 0 then
+                -- Auto-unlock if we only have 1 item left (locking logic is disabled for single items)
+                if #nearbyItems <= 1 and self.lockedItemLink then
+                    self:SetLockedItem(nil)
+                end
+
                 -- Check if we have a locked item
                 if self.lockedItemLink then
                     local found = false

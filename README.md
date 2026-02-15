@@ -25,10 +25,12 @@ Inspired by the excellent [ExtraQuestButton](https://github.com/p3lim-wow/ExtraQ
 *   Applies the distinct WindTools **Shadow** and **Vignette** styles for a premium look consistent with your UI.
 
 ### 🔒 Locking
-Lock the current quest item so it doesn't change automatically when you move between objectives. The lock persists until the quest completes, you leave the area, or you manually unlock.
+Lock the current quest item so it doesn't change automatically when you move between objectives. **Locking is only available when multiple quest items are detected nearby.**
 
+*   **Smart Visibility**: The Lock icon and Switch button are hidden when only one quest item is available, keeping the UI clean.
 *   **Manual Lock**: Click the **Lock icon** (bottom-left of button) to toggle the lock on/off.
-*   **Auto-Lock After Use** *(on by default)*: Clicking the quest item automatically locks it to prevent it from swapping while you're still working on that quest.
+*   **Auto-Lock After Use** *(off by default)*: Clicking the quest item automatically locks it to prevent it from swapping while you're still working on that quest. **Note:** Only applies when multiple items are nearby.
+*   **Auto-Unlock**: If the number of nearby quest items drops to 1, the lock is automatically released to ensure you aren't stuck when a new item appears.
 *   **Switching Always Locks**: When you switch to a different quest item (via the Switch button or scroll wheel), the new item is automatically locked. This ensures your manual selection is respected and the distance-based auto-switching won't revert it.
 *   **Visuals**:
     *   🟡 **Gold Lock**: Item is locked (manually, after use, or after switching).
