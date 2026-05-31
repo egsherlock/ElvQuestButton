@@ -468,6 +468,14 @@ function coreMixin:UNIT_SPELLCAST_SUCCEEDED(_, _, spellID)
         return
     end
 
+    -- Midnight (12.0) secrets: spellIDs from combat-related casts can be "secret
+    -- values" that must not be read or compared in insecure code. Skip those —
+    -- quest items are used out of combat anyway. (Mirrors the UnitCreatureID
+    -- guard in UpdateTarget.)
+    if issecretvalue and issecretvalue(spellID) then
+        return
+    end
+
     local settings = addon:GetCurrentSettings()
     if not settings or settings.autoLockOnUse ~= true then
         return
