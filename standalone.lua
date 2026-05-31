@@ -40,7 +40,7 @@ function addon:InitStandalone()
         button:SetArtworkAlpha(profile.artworkAlpha)
         button:SetArtworkScale(profile.artworkScale or 1)
         button:SetArtworkRotation(profile.artworkRotation or 0)
-        button:SetLockIcon(profile.lockIconStyle or 'Padlock')
+        button:SetLockIcon(profile.lockIconStyle or 'GoldLock')
         button:SetSwitchIcon(profile.switchIconStyle or 'Refresh')
         button:EnableCooldownText(not profile.noCooldownText)
         

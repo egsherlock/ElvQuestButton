@@ -324,7 +324,7 @@ function EQB:InsertOptions()
                         desc = "Which icon to use for the Lock button.",
                         values = lockIconValues,
                         sorting = lockIconSorting,
-                        get = function() return self:GetDB().lockIconStyle or 'Padlock' end,
+                        get = function() return self:GetDB().lockIconStyle or 'GoldLock' end,
                         set = function(_, value)
                             self:GetDB().lockIconStyle = value
                             self:UpdateButton()

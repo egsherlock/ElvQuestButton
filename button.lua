@@ -41,13 +41,15 @@ local ART_STYLES = {
 	Ysera = [[Interface\ExtraButton\Ysera]],
 }
 
--- Selectable icons for the Lock button. Each entry is a texture path plus an
--- optional texcoord trim (for square Icon-folder art that has a border).
+-- Selectable icons for the Lock / Switch buttons. Each entry is either a
+-- `texture` path (with optional `coords` trim for square Icon-folder art) or an
+-- `atlas` name (resolved at apply-time, with a `texture` fallback if the atlas
+-- isn't present on this client). Curated to clean, reliable Blizzard art; the
+-- gold action-bar padlock is the default.
 local LOCK_ICONS = {
+	GoldLock = { texture = [[Interface\Buttons\LockButton-Locked-Up]] },                              -- clean gold UI padlock
 	Padlock  = { texture = [[Interface\PetBattles\PetBattle-LockIcon]], coords = {0.05, 0.95, 0.05, 0.95} },
-	GoldLock = { texture = [[Interface\Buttons\LockButton-Locked-Up]] },
-	LockIcon = { texture = [[Interface\Icons\INV_Misc_Key_14]], coords = {0.08, 0.92, 0.08, 0.92} },
-	Key      = { texture = [[Interface\Icons\INV_Misc_Key_03]], coords = {0.08, 0.92, 0.08, 0.92} },
+	KeyRing  = { texture = [[Interface\Icons\INV_Misc_Key_14]], coords = {0.08, 0.92, 0.08, 0.92} },   -- padlock-style icon
 }
 
 -- Selectable icons for the Switch button.
@@ -156,16 +158,24 @@ local function applyIcon(button, iconTable, style, fallback)
 	local icon = iconTable[style] or iconTable[fallback]
 	local tex = button:GetNormalTexture()
 	if not (icon and tex) then return end
-	tex:SetTexture(icon.texture)
-	if icon.coords then
-		tex:SetTexCoord(unpack(icon.coords))
-	else
+
+	-- Prefer an atlas if it's actually present on this client; otherwise fall
+	-- back to the texture path so we never render a blank icon.
+	if icon.atlas and C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(icon.atlas) then
 		tex:SetTexCoord(0, 1, 0, 1)
+		tex:SetAtlas(icon.atlas)
+	elseif icon.texture then
+		tex:SetTexture(icon.texture)
+		if icon.coords then
+			tex:SetTexCoord(unpack(icon.coords))
+		else
+			tex:SetTexCoord(0, 1, 0, 1)
+		end
 	end
 end
 
 function buttonMixin:SetLockIcon(style)
-	applyIcon(self.LockButton, LOCK_ICONS, style, 'Padlock')
+	applyIcon(self.LockButton, LOCK_ICONS, style, 'GoldLock')
 end
 
 function buttonMixin:GetLockIcons()

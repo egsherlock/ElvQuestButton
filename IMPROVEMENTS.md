@@ -87,4 +87,5 @@ A list of potential improvements identified during development. Items are marked
 ### 14. Selectable Lock / Switch Icons
 - [x] **DONE (2026-05-31)**
 - **Problem**: The Lock and Switch button icons were hardcoded.
-- **Fix**: Added `LOCK_ICONS` (Padlock, GoldLock, LockIcon, Key) and `SWITCH_ICONS` (Refresh, Rotate, Cycle) tables with `SetLockIcon`/`SetSwitchIcon` helpers, plus `lockIconStyle`/`switchIconStyle` settings and dropdowns in both the ElvUI panel and standalone Edit Mode. The gold/grey state tint still layers on top.
+- **Fix**: Added `LOCK_ICONS` (GoldLock [default], Padlock, KeyRing) and `SWITCH_ICONS` (Refresh, Rotate, Cycle) tables with `SetLockIcon`/`SetSwitchIcon` helpers, plus `lockIconStyle`/`switchIconStyle` settings and dropdowns in both the ElvUI panel and standalone Edit Mode. The gold/grey state tint still layers on top.
+- **Curation (2026-05-31)**: trimmed to clean, reliable Blizzard art with the gold action-bar padlock as default. `applyIcon` now supports `atlas` entries with a runtime `C_Texture.GetAtlasInfo` existence check and texture fallback, so nicer atlas icons (discoverable via the TextureAtlasViewer addon) can be added later with zero blank-icon risk. Custom .tga assets remain a future option if desired.

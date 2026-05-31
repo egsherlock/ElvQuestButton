@@ -42,7 +42,7 @@ addon.DEFAULTS = {
     autoLockOnUse = false,
     scrollToSwitch = true,
     lockOnSwitch = false,  -- false = soft-select (no persistent lock); true = hard-lock on switch
-    lockIconStyle = 'Padlock',
+    lockIconStyle = 'GoldLock',
     switchIconStyle = 'Refresh',
     itemCountBadge = 'SWITCH',
 }
