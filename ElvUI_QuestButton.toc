@@ -35,4 +35,5 @@ standalone.lua
 ElvUI\init.lua
 ElvUI\core.lua
 ElvUI\options.lua
+ElvUI\panel.lua
 ElvUI\shadow.lua

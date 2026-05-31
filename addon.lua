@@ -160,10 +160,12 @@ addon:RegisterSlash('/eqb', function(msg)
         return
     end
 
-    -- No argument: open the ElvQuestButton settings page
+    -- No argument: open the bespoke ElvQuestButton settings panel (ElvUI mode),
+    -- or point standalone users at Edit Mode.
     if button.elvuiManaged then
-        local E = unpack(_G.ElvUI)
-        E:ToggleOptions('elvQuestButton')
+        if addon.ElvUIModule and addon.ElvUIModule.Panel then
+            addon.ElvUIModule.Panel:Toggle()
+        end
     else
         addon:Print('Configure in Edit Mode (ESC → Edit Mode)')
     end
