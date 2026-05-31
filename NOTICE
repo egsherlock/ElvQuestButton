@@ -1,0 +1,35 @@
+ElvQuestButton
+==============
+
+ElvQuestButton is a derivative work of ExtraQuestButton.
+
+Original work
+-------------
+ExtraQuestButton
+Copyright (c) 2015-2026 Adrian L Lange <addons@p3lim.net>
+https://github.com/p3lim-wow/ExtraQuestButton
+
+The core quest-item detection logic (core.lua, utils.lua) and the quest/item
+data tables (data.lua) are derived from, or sampled from, ExtraQuestButton.
+These remain subject to the original license in LICENSE.txt.
+
+Derivative work
+---------------
+ElvQuestButton — ElvUI integration and extended feature set
+Copyright (c) 2024-2026 Sherlockell
+
+Additions by Sherlockell include (non-exhaustive): the ElvUI skin/integration
+module (ElvUI/), the LibEditMode standalone fallback (standalone.lua), the
+lock/switch and soft-select item handling, the item-count badge, artwork
+background layering with size/rotation controls, font customization, and the
+movement-aware update scheduling.
+
+License
+-------
+This entire project is distributed under the terms of LICENSE.txt (p3lim's
+original license). It is NOT licensed under the MIT License. The original work
+may not be redistributed standalone without the original author's written
+permission; this project is distributed only as a renamed derivative work.
+
+Bundled libraries (libs/) are the property of their respective authors and are
+distributed under their own licenses.

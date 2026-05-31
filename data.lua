@@ -243,5 +243,21 @@ data.priorityItems = {
 	[228988] = 1, -- Rock Reviver, Siren Isle
 }
 
+-- Profession-related quest items (questID = itemID, or a list of itemIDs).
+--
+-- Some quests require an item that the quest API (GetQuestLogSpecialItemInfo)
+-- does NOT expose as a quest item — typically a profession-crafted turn-in or a
+-- gathering tool. This table is consulted as an additional fallback in
+-- utils.lua's GetQuestDistanceWithItem, AFTER the standard questItems lookup,
+-- and reuses the same "is the item actually in the player's bags?" guard, so an
+-- entry only ever surfaces an item the player is holding.
+--
+-- This is scaffolding: it ships empty until verified questID -> itemID pairs are
+-- collected in-game. Same shape as data.questItems, e.g.:
+--   [12345] = 67890,            -- single required item
+--   [12346] = {67891, 67892},   -- any one of several
+data.professionQuestItems = {
+}
+
 local _, addon = ...
 addon.data = data

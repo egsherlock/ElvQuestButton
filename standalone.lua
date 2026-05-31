@@ -38,6 +38,8 @@ function addon:InitStandalone()
         button:SetScale(profile.scale)
         button:SetArtworkStyle(profile.artworkStyle)
         button:SetArtworkAlpha(profile.artworkAlpha)
+        button:SetArtworkScale(profile.artworkScale or 1)
+        button:SetArtworkRotation(profile.artworkRotation or 0)
         button:EnableCooldownText(not profile.noCooldownText)
         
         local pos = profile.position
@@ -192,6 +194,42 @@ function addon:InitStandalone()
             height = 200,
         },
         {
+            name = L['Artwork size'],
+            kind = LEM.SettingType.Slider,
+            default = DEFAULTS.artworkScale,
+            get = function(layoutName)
+                return ElvQuestButtonDB.profiles[layoutName].artworkScale
+            end,
+            set = function(layoutName, value)
+                ElvQuestButtonDB.profiles[layoutName].artworkScale = value
+                button:SetArtworkScale(value)
+            end,
+            minValue = 0.5,
+            maxValue = 2,
+            valueStep = 0.05,
+            formatter = function(value)
+                return FormatPercentage(value, true)
+            end,
+        },
+        {
+            name = L['Artwork rotation'],
+            kind = LEM.SettingType.Slider,
+            default = DEFAULTS.artworkRotation,
+            get = function(layoutName)
+                return ElvQuestButtonDB.profiles[layoutName].artworkRotation
+            end,
+            set = function(layoutName, value)
+                ElvQuestButtonDB.profiles[layoutName].artworkRotation = value
+                button:SetArtworkRotation(value)
+            end,
+            minValue = 0,
+            maxValue = 360,
+            valueStep = 1,
+            formatter = function(value)
+                return math.floor(value + 0.5) .. '°'
+            end,
+        },
+        {
             name = L['Hide cooldown text'],
             kind = LEM.SettingType.Checkbox,
             default = DEFAULTS.noCooldownText,
@@ -234,6 +272,21 @@ function addon:InitStandalone()
             end,
             set = function(layoutName, value)
                 ElvQuestButtonDB.profiles[layoutName].scrollToSwitch = value
+            end,
+        },
+        {
+            name = 'Lock when switching',
+            kind = LEM.SettingType.Checkbox,
+            default = DEFAULTS.lockOnSwitch,
+            get = function(layoutName)
+                return ElvQuestButtonDB.profiles[layoutName].lockOnSwitch
+            end,
+            set = function(layoutName, value)
+                ElvQuestButtonDB.profiles[layoutName].lockOnSwitch = value
+                button.selectedItemLink = nil
+                if button.lockedItemLink and not button.inCombat then
+                    button:SetLockedItem(nil)
+                end
             end,
         },
         {

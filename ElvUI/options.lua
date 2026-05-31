@@ -164,10 +164,28 @@ function EQB:InsertOptions()
                         order = 13,
                         type = 'toggle',
                         name = "Scroll to Switch",
-                        desc = "Scroll the mouse wheel while hovering the button to cycle between available quest items.\n\n|cffaaaaaaSwitching always locks to the selected item.|r\n\n|cffffd100Unlocks when:|r\n• Quest completes or is handed in\n• You leave the area\n• You click the Lock icon manually",
+                        desc = "Scroll the mouse wheel while hovering the button to cycle between available quest items.",
                         get = function() return self:GetDB().scrollToSwitch end,
                         set = function(_, value)
                             self:GetDB().scrollToSwitch = value
+                        end,
+                    },
+                    lockOnSwitch = {
+                        order = 14,
+                        type = 'toggle',
+                        name = "Lock When Switching",
+                        desc = "Controls what happens after you switch items (by scrolling or the Switch button).\n\n|cff33ff99On:|r the chosen item is locked (gold) and stays until you unlock it.\n\n|cffffd100Off (default):|r the chosen item is simply displayed and sticks while it's nearby, with no lock — it clears on its own when you leave the area.",
+                        get = function() return self:GetDB().lockOnSwitch end,
+                        set = function(_, value)
+                            self:GetDB().lockOnSwitch = value
+                            -- Switching the mode: drop any stale soft selection / hard lock
+                            -- so the change takes effect cleanly on the next update.
+                            local btn = _G.ElvQuestButton or _G[addonName]
+                            if btn and not btn.inCombat then
+                                btn.selectedItemLink = nil
+                                if btn.lockedItemLink then btn:SetLockedItem(nil) end
+                                if btn.UpdateState then btn:UpdateState() end
+                            end
                         end,
                     },
                 },
@@ -315,6 +333,33 @@ function EQB:InsertOptions()
                         get = function() return self:GetDB().artworkAlpha end,
                         set = function(_, value)
                             self:GetDB().artworkAlpha = value
+                            self:UpdateButton()
+                        end,
+                        disabled = function() return not self:GetDB().artworkEnabled end,
+                    },
+                    artworkScale = {
+                        order = 14,
+                        type = 'range',
+                        name = "Artwork Size",
+                        desc = "Size of the artwork relative to its native dimensions.",
+                        min = 0.5, max = 2, step = 0.05,
+                        isPercent = true,
+                        get = function() return self:GetDB().artworkScale or 1 end,
+                        set = function(_, value)
+                            self:GetDB().artworkScale = value
+                            self:UpdateButton()
+                        end,
+                        disabled = function() return not self:GetDB().artworkEnabled end,
+                    },
+                    artworkRotation = {
+                        order = 15,
+                        type = 'range',
+                        name = "Artwork Rotation",
+                        desc = "Rotate the artwork (degrees).",
+                        min = 0, max = 360, step = 1,
+                        get = function() return self:GetDB().artworkRotation or 0 end,
+                        set = function(_, value)
+                            self:GetDB().artworkRotation = value
                             self:UpdateButton()
                         end,
                         disabled = function() return not self:GetDB().artworkEnabled end,

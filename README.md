@@ -146,4 +146,18 @@ These temporary objects accumulate in Lua's memory until WoW's **garbage collect
 *   **fang2hou**: For the design inspiration and the WindTools addon.
 
 ## 📄 License
-MIT License. See LICENSE for details.
+
+This project is a **derivative work** of p3lim's
+[ExtraQuestButton](https://github.com/p3lim-wow/ExtraQuestButton) and is governed
+by p3lim's original license — see [`LICENSE.txt`](LICENSE.txt). It is **not** MIT,
+and the original code cannot be relicensed.
+
+In short, that license permits modifying and distributing derivative works (such
+as this one) provided they are not named or presented in a way that confuses them
+with the original, and it does **not** grant permission to redistribute the
+original software standalone without the author's written consent. This addon is
+renamed and distributed only as a derivative work. See [`NOTICE`](NOTICE) for
+attribution details.
+
+Distribution to third-party stores (e.g. CurseForge, Wago) is intentionally on
+hold pending explicit permission from the original author.

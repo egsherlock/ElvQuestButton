@@ -118,6 +118,21 @@ function buttonMixin:SetArtworkAlpha(alpha)
 	self.Artwork:SetAlpha(alpha)
 end
 
+-- Resize the artwork relative to its native 256x128 dimensions. Cheap; only
+-- called on settings change, never per-frame.
+function buttonMixin:SetArtworkScale(scale)
+	scale = scale or 1
+	self.Artwork:SetSize(256 * scale, 128 * scale)
+end
+
+-- Rotate the artwork in place (degrees). TextureBase:SetRotation rotates around
+-- the texture's centre; guarded in case an older client lacks the method.
+function buttonMixin:SetArtworkRotation(degrees)
+	if self.Artwork.SetRotation then
+		self.Artwork:SetRotation(math.rad(degrees or 0))
+	end
+end
+
 function buttonMixin:EnableUpdateRange(state)
 	self.isRangeUpdateEnabled = state
 	self.HotKey:SetTextColor(1, 1, 1) -- reset to default value
@@ -397,7 +412,12 @@ function addon:CreateExtraButton(extraTemplates)
         else
             GameTooltip:AddLine("Cycle through other detected quest items nearby.", nil, nil, nil, true)
             GameTooltip:AddLine(" ", 1, 1, 1) -- Spacer
-            GameTooltip:AddLine("|cffffd100Note:|r Switching automatically locks the new item.", 1, 1, 1, true)
+            local settings = addon:GetCurrentSettings()
+            if settings and settings.lockOnSwitch then
+                GameTooltip:AddLine("|cffffd100Note:|r Switching locks to the new item.", 1, 1, 1, true)
+            else
+                GameTooltip:AddLine("|cffffd100Note:|r The chosen item sticks while nearby (no lock).", 1, 1, 1, true)
+            end
         end
         GameTooltip:Show()
     end)

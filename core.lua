@@ -12,6 +12,17 @@ local addonName, addon = ...
 local L = addon.L
 local data = addon.data
 
+-- Returns true if `value` is present in the array-like table `list`.
+function addon:ListContains(list, value)
+    if not list then return false end
+    for _, v in ipairs(list) do
+        if v == value then
+            return true
+        end
+    end
+    return false
+end
+
 -- Default settings (shared between ElvUI and standalone modes)
 addon.DEFAULTS = {
     position = {
@@ -22,12 +33,15 @@ addon.DEFAULTS = {
     scale = 1,
     artworkAlpha = 1,
     artworkStyle = 'Default',
+    artworkScale = 1,
+    artworkRotation = 0,
     noCooldownText = false,
     trackingOnly = false,
     zoneOnly = false,
     distanceYd = 1000,
     autoLockOnUse = false,
     scrollToSwitch = true,
+    lockOnSwitch = false,  -- false = soft-select (no persistent lock); true = hard-lock on switch
     itemCountBadge = 'SWITCH',
 }
 
@@ -177,36 +191,45 @@ function coreMixin:UpdateState()
              end
             
             if nearbyItems and #nearbyItems > 0 then
-                -- Auto-unlock if we only have 1 item left (locking logic is disabled for single items)
-                if #nearbyItems <= 1 and self.lockedItemLink then
-                    self:SetLockedItem(nil)
+                -- With only 1 item, neither a hard lock nor a soft selection is
+                -- meaningful, so clear both.
+                if #nearbyItems <= 1 then
+                    if self.lockedItemLink then self:SetLockedItem(nil) end
+                    self.selectedItemLink = nil
                 end
 
-                -- Check if we have a locked item
+                -- Resolution order: hard lock > soft selection > closest.
+                -- Each preference is honoured only while it's still in range;
+                -- otherwise it's cleared and we fall through to the next.
+
+                -- 1) Hard lock (manual Lock button, autoLockOnUse, or scroll
+                --    when lockOnSwitch is enabled). Shows the gold lock state.
                 if self.lockedItemLink then
-                    local found = false
-                    for _, link in ipairs(nearbyItems) do
-                        if link == self.lockedItemLink then
-                            found = true
-                            break
-                        end
-                    end
-                    
-                    if found then
+                    if addon:ListContains(nearbyItems, self.lockedItemLink) then
                         itemLink = self.lockedItemLink
                     else
-                        -- Locked item is no longer valid, unlock and take closest
                         self:SetLockedItem(nil)
-                        itemLink = nearbyItems[1]
                     end
-                else
-                    -- No lock (or just unlocked), take closest
+                end
+
+                -- 2) Soft selection (scroll/Switch when lockOnSwitch is off).
+                --    Sticks while in range, no lock visual, auto-clears when gone.
+                if not itemLink and self.selectedItemLink then
+                    if addon:ListContains(nearbyItems, self.selectedItemLink) then
+                        itemLink = self.selectedItemLink
+                    else
+                        self.selectedItemLink = nil
+                    end
+                end
+
+                -- 3) Closest item.
+                if not itemLink then
                     itemLink = nearbyItems[1]
                 end
-            elseif self.lockedItemLink then
-                -- No items found at all, but we had a lock.
-                -- This implies the locked item is gone too.
-                self:SetLockedItem(nil)
+            else
+                -- No items found at all; any lock/selection is stale.
+                if self.lockedItemLink then self:SetLockedItem(nil) end
+                self.selectedItemLink = nil
             end
         end
     end
@@ -259,18 +282,39 @@ end
 
 function coreMixin:SetLockedItem(itemLink)
     self.lockedItemLink = itemLink
+    -- A hard lock supersedes any soft selection.
+    if itemLink then
+        self.selectedItemLink = nil
+    end
     -- Visual update handled by UpdateFeatures calls
+end
+
+-- Apply a switch target chosen by the Switch button / scroll wheel. Honours the
+-- lockOnSwitch setting: when enabled it pins the item (hard lock, gold state);
+-- when disabled it sets a soft selection that sticks while in range but shows no
+-- lock visual. Either way UpdateState's resolution order keeps it displayed.
+function coreMixin:SelectItem(itemLink)
+    if not itemLink then return end
+
+    local settings = addon:GetCurrentSettings()
+    if settings and settings.lockOnSwitch then
+        self:SetLockedItem(itemLink)
+    else
+        self:SetLockedItem(nil)
+        self.selectedItemLink = itemLink
+    end
+    self:UpdateState()
 end
 
 function coreMixin:SwitchItem()
     -- Switching is NOT safe in combat
     if InCombatLockdown() then return end
-    
+
     if not self.lastNearbyItems or #self.lastNearbyItems < 2 then return end
-    
-    local current = self.lockedItemLink or self:GetItemLink()
+
+    local current = self.lockedItemLink or self.selectedItemLink or self:GetItemLink()
     if not current then return end
-    
+
     local nextItem
     for i, link in ipairs(self.lastNearbyItems) do
         if link == current then
@@ -278,30 +322,24 @@ function coreMixin:SwitchItem()
             break
         end
     end
-    
+
     -- Wrap around
     if not nextItem then
         nextItem = self.lastNearbyItems[1]
     end
-    
-    if nextItem then
-        -- Always lock when switching. Switching without locking is
-        -- meaningless — the 2-second UpdateState ticker would revert
-        -- the display back to the closest/locked item on the next cycle.
-        self:SetLockedItem(nextItem)
-        self:UpdateState()
-    end
+
+    self:SelectItem(nextItem)
 end
 
 function coreMixin:SwitchItemPrevious()
     -- Switching is NOT safe in combat
     if InCombatLockdown() then return end
-    
+
     if not self.lastNearbyItems or #self.lastNearbyItems < 2 then return end
-    
-    local current = self.lockedItemLink or self:GetItemLink()
+
+    local current = self.lockedItemLink or self.selectedItemLink or self:GetItemLink()
     if not current then return end
-    
+
     local prevItem
     for i, link in ipairs(self.lastNearbyItems) do
         if link == current then
@@ -309,16 +347,13 @@ function coreMixin:SwitchItemPrevious()
             break
         end
     end
-    
+
     -- Wrap around to end
     if not prevItem then
         prevItem = self.lastNearbyItems[#self.lastNearbyItems]
     end
-    
-    if prevItem then
-        self:SetLockedItem(prevItem)
-        self:UpdateState()
-    end
+
+    self:SelectItem(prevItem)
 end
 
 function coreMixin:UpdateTarget()
@@ -402,6 +437,22 @@ function coreMixin:PLAYER_REGEN_DISABLED()
     self.inCombat = true
     if self.UpdateFeatures then
         self:UpdateFeatures()
+    end
+end
+
+-- Movement tracking drives the distance-polling ticker (see addon.lua). The
+-- only thing that ticker catches which events don't is the player-to-objective
+-- distance changing as they move, so we only need to poll while actually moving.
+function coreMixin:PLAYER_STARTED_MOVING()
+    self.isMoving = true
+end
+
+function coreMixin:PLAYER_STOPPED_MOVING()
+    self.isMoving = false
+    -- One settle update so the final resting distance registers promptly
+    -- instead of waiting for the next ticker cycle.
+    if self.ScheduleUpdate then
+        self:ScheduleUpdate()
     end
 end
 

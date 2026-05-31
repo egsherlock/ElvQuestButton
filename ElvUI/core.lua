@@ -324,6 +324,8 @@ function EQB:UpdateButton()
     if button.SetArtworkStyle then
         button:SetArtworkStyle(db.artworkStyle or 'Default')
         button:SetArtworkAlpha(db.artworkEnabled and (db.artworkAlpha or 1) or 0)
+        if button.SetArtworkScale then button:SetArtworkScale(db.artworkScale or 1) end
+        if button.SetArtworkRotation then button:SetArtworkRotation(db.artworkRotation or 0) end
     end
     
     -- Fonts & Text
@@ -438,6 +440,7 @@ function EQB:ToggleTestMode()
         button.editing = false
         button.lastNearbyItems = nil -- clear test items
         button.lockedItemLink = nil  -- clear any test locks
+        button.selectedItemLink = nil -- clear any test soft-selection
         button.targetItem = nil      -- clear test item tracking
         
         -- Restore ALL original methods
@@ -553,19 +556,20 @@ function EQB:ToggleTestMode()
         -- This prevents the real UpdateState from wiping test data or calling
         -- WoW APIs, while still handling the lock-switch-display flow correctly.
         button.UpdateState = function(self)
-            -- If locked item changed (e.g. via SwitchItem), update display
-            local displayItem = self.lockedItemLink or self.targetItem
+            -- Mirror the real resolution order: hard lock > soft selection >
+            -- current display. (e.g. via SwitchItem/SelectItem)
+            local displayItem = self.lockedItemLink or self.selectedItemLink or self.targetItem
             if displayItem and displayItem ~= self.targetItem then
                 self:SetItem(displayItem)
             end
             if self.UpdateFeatures then
                 self:UpdateFeatures()
             end
-            
+
             if self.UpdateItemBadge then
                 local total = self.lastNearbyItems and #self.lastNearbyItems or 0
                 local current = 0
-                local currentItem = self.lockedItemLink or self.targetItem
+                local currentItem = self.lockedItemLink or self.selectedItemLink or self.targetItem
                 if currentItem and total > 0 then
                     for i, link in ipairs(self.lastNearbyItems) do
                         if link == currentItem then

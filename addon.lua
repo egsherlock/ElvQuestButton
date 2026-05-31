@@ -36,14 +36,30 @@ function button:OnLoad()
     
     -- Initialize combat state flag
     self.inCombat = InCombatLockdown()
-    
+
+    -- Movement state: gates the distance-polling ticker below
+    self.isMoving = false
+
     -- Register events for updating displayed data
     self:RegisterEvent('UPDATE_BINDINGS', self.UpdateBinding)
     self:RegisterEvent('BAG_UPDATE_DELAYED', self.UpdateCount)
     self:RegisterEvent('BAG_UPDATE_COOLDOWN', self.UpdateCooldown)
-    
-    -- Update every 2 seconds for the distance check (polling for performance)
-    C_Timer.NewTicker(2, function() button:UpdateState() end)
+
+    -- Track movement so the ticker only runs the (relatively expensive) full
+    -- quest scan while the player is actually moving.
+    self:RegisterEvent('PLAYER_STARTED_MOVING', self.PLAYER_STARTED_MOVING)
+    self:RegisterEvent('PLAYER_STOPPED_MOVING', self.PLAYER_STOPPED_MOVING)
+
+    -- Distance polling. The only thing this catches that events don't is the
+    -- player-to-objective distance changing as they move; everything else is
+    -- handled by the event-driven ScheduleUpdate path. So while stationary we
+    -- skip the scan entirely (the stop-moving settle update already refreshed
+    -- the final position).
+    C_Timer.NewTicker(2, function()
+        if button.isMoving then
+            button:UpdateState()
+        end
+    end)
     
     -- Throttled update: coalesces multiple same-frame events into one UpdateState
     -- This prevents redundant quest log iterations when e.g. QUEST_LOG_UPDATE,

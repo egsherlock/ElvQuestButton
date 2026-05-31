@@ -17,7 +17,10 @@ local function GetQuestDistanceWithItem(questID, maxDistanceYd)
 
 	local itemLink, _, _, showWhenComplete = GetQuestLogSpecialItemInfo(questLogIndex)
 	if not itemLink then
-		local fallbackItemID = data.questItems[questID]
+		-- Fall back to our own quest->item mappings. data.professionQuestItems
+		-- covers quests whose required item the quest API doesn't expose (e.g.
+		-- profession-crafted turn-ins); both use the same bag-presence guard below.
+		local fallbackItemID = data.questItems[questID] or data.professionQuestItems[questID]
 		if fallbackItemID == 202247 then
 			-- extra handling for technoscrying quests
 			if C_UnitAuras.GetPlayerAuraBySpellID(409668) or C_UnitAuras.GetPlayerAuraBySpellID(414539) then

@@ -49,3 +49,32 @@ A list of potential improvements identified during development. Items are marked
 - [x] **DONE**
 - **Problem**: Aggressive scrolling can trigger many rapid `SwitchItem()` / `SwitchItemPrevious()` calls in quick succession.
 - **Fix**: Added ~0.15s cooldown check in `OnMouseWheel` handler.
+
+---
+
+## ✨ Feature & Polish Pass (2026-05-31)
+
+### 8. Decouple Locking from Scroll-to-Switch
+- [x] **DONE (2026-05-31)**
+- **Problem**: Switching items (scroll or Switch button) always hard-locked the chosen item (gold), which users don't always want.
+- **Fix**: Added a soft-selection concept (`selectedItemLink`) separate from the hard lock (`lockedItemLink`). New `lockOnSwitch` setting (default **off** = soft-select). `UpdateState` resolution order is now hard lock → soft selection → closest, each honoured only while in range. `SwitchItem`/`SwitchItemPrevious` route through a new `SelectItem` helper.
+
+### 9. Artwork Rotation & Size
+- [x] **DONE (2026-05-31)**
+- **Problem**: Artwork background was fixed at its native 256×128, no orientation control.
+- **Fix**: Added `buttonMixin:SetArtworkScale` (resizes relative to native) and `SetArtworkRotation` (uses `TextureBase:SetRotation`). New `artworkScale`/`artworkRotation` settings, applied only on change (no per-frame cost), with controls in both the ElvUI panel and standalone Edit Mode.
+
+### 10. Movement-Aware Distance Polling
+- [x] **DONE (2026-05-31)**
+- **Problem**: The 2-second ticker ran a full `GetNearbyQuestItems` scan unconditionally, even while standing still — work whose only purpose (distance change) only happens while moving.
+- **Fix**: Track movement via `PLAYER_STARTED_MOVING`/`PLAYER_STOPPED_MOVING`; the ticker now scans only while moving, with a single settle update on stop. Event-driven `ScheduleUpdate` continues to cover everything else.
+
+### 11. Profession-Item Quest Detection (scaffolding)
+- [ ] SCAFFOLDED (2026-05-31) — needs real-world entries
+- **Problem**: Items required by a quest but not exposed via `GetQuestLogSpecialItemInfo` (e.g. profession-crafted turn-ins) are invisible to the addon.
+- **Fix**: Added an empty `data.professionQuestItems` table, consulted as an additional fallback in `utils.lua` (after `questItems`, reusing the bag-presence guard). Ships empty until verified `questID → itemID` pairs are collected in-game.
+
+### 12. License / Attribution Correction
+- [x] **DONE (2026-05-31)**
+- **Problem**: README incorrectly claimed "MIT License"; the project is actually governed by p3lim's custom license (derivative works permitted, no standalone redistribution without permission).
+- **Fix**: Corrected the README License section, added a `NOTICE` file with full attribution, and put third-party-store distribution (CurseForge/Wago) on hold pending the author's written permission.

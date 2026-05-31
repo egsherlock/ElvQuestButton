@@ -25,6 +25,8 @@ local moduleDefaults = {
     artworkEnabled = false,    -- Optional ExtraButton artwork behind the skin
     artworkStyle = 'Default',
     artworkAlpha = 1,          -- Opacity used when artworkEnabled is true (gated by the toggle)
+    artworkScale = 1,          -- Size multiplier on the native 256x128 artwork
+    artworkRotation = 0,       -- Rotation in degrees
     noCooldownText = false,
     trackingOnly = false,
     zoneOnly = false,
@@ -32,6 +34,7 @@ local moduleDefaults = {
     inheritGlobalFade = false,
     autoLockOnUse = false,
     scrollToSwitch = true,
+    lockOnSwitch = false,      -- false = soft-select; true = hard-lock when scrolling/switching
     
     -- Fonts & Text
     countFont = 'Expressway',
