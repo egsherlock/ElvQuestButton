@@ -40,6 +40,8 @@ function addon:InitStandalone()
         button:SetArtworkAlpha(profile.artworkAlpha)
         button:SetArtworkScale(profile.artworkScale or 1)
         button:SetArtworkRotation(profile.artworkRotation or 0)
+        button:SetLockIcon(profile.lockIconStyle or 'Padlock')
+        button:SetSwitchIcon(profile.switchIconStyle or 'Refresh')
         button:EnableCooldownText(not profile.noCooldownText)
         
         local pos = profile.position
@@ -140,6 +142,18 @@ function addon:InitStandalone()
         return a.text < b.text
     end
     table.sort(ART_STYLE_OPTIONS, sortByText)
+
+    -- Build lock / switch icon options
+    local function buildIconOptions(iconTable)
+        local options = {}
+        for name in next, iconTable do
+            table.insert(options, { text = name, isRadio = true })
+        end
+        table.sort(options, sortByText)
+        return options
+    end
+    local LOCK_ICON_OPTIONS = buildIconOptions(button:GetLockIcons())
+    local SWITCH_ICON_OPTIONS = buildIconOptions(button:GetSwitchIcons())
     
     -- Add Edit Mode settings
     LEM:AddFrameSettings(button, {
@@ -228,6 +242,32 @@ function addon:InitStandalone()
             formatter = function(value)
                 return math.floor(value + 0.5) .. '°'
             end,
+        },
+        {
+            name = L['Lock icon'],
+            kind = LEM.SettingType.Dropdown,
+            default = DEFAULTS.lockIconStyle,
+            get = function(layoutName)
+                return ElvQuestButtonDB.profiles[layoutName].lockIconStyle
+            end,
+            set = function(layoutName, value)
+                ElvQuestButtonDB.profiles[layoutName].lockIconStyle = value
+                button:SetLockIcon(value)
+            end,
+            values = LOCK_ICON_OPTIONS,
+        },
+        {
+            name = L['Switch icon'],
+            kind = LEM.SettingType.Dropdown,
+            default = DEFAULTS.switchIconStyle,
+            get = function(layoutName)
+                return ElvQuestButtonDB.profiles[layoutName].switchIconStyle
+            end,
+            set = function(layoutName, value)
+                ElvQuestButtonDB.profiles[layoutName].switchIconStyle = value
+                button:SetSwitchIcon(value)
+            end,
+            values = SWITCH_ICON_OPTIONS,
         },
         {
             name = L['Hide cooldown text'],

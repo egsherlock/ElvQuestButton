@@ -90,6 +90,11 @@ function button:OnLoad()
     
     -- Some items are used directly on targets
     self:RegisterEvent('PLAYER_TARGET_CHANGED', self.UpdateTarget)
+
+    -- Auto-lock when the displayed quest item's spell is cast by ANY means
+    -- (bag click, keybind, hover/right-click world interaction), not just our
+    -- button's PostClick. Gated by the autoLockOnUse setting inside the handler.
+    self:RegisterUnitEvent('UNIT_SPELLCAST_SUCCEEDED', 'player', self.UNIT_SPELLCAST_SUCCEEDED)
     
     -- Update checked status
     self:RegisterEvent('CURRENT_SPELL_CAST_CHANGED', self.UpdateChecked)

@@ -41,6 +41,22 @@ local ART_STYLES = {
 	Ysera = [[Interface\ExtraButton\Ysera]],
 }
 
+-- Selectable icons for the Lock button. Each entry is a texture path plus an
+-- optional texcoord trim (for square Icon-folder art that has a border).
+local LOCK_ICONS = {
+	Padlock  = { texture = [[Interface\PetBattles\PetBattle-LockIcon]], coords = {0.05, 0.95, 0.05, 0.95} },
+	GoldLock = { texture = [[Interface\Buttons\LockButton-Locked-Up]] },
+	LockIcon = { texture = [[Interface\Icons\INV_Misc_Key_14]], coords = {0.08, 0.92, 0.08, 0.92} },
+	Key      = { texture = [[Interface\Icons\INV_Misc_Key_03]], coords = {0.08, 0.92, 0.08, 0.92} },
+}
+
+-- Selectable icons for the Switch button.
+local SWITCH_ICONS = {
+	Refresh = { texture = [[Interface\Buttons\UI-RefreshButton]] },
+	Rotate  = { texture = [[Interface\Buttons\UI-RotationRight-Button-Up]] },
+	Cycle   = { texture = [[Interface\Icons\Ability_Hunter_Readiness]], coords = {0.08, 0.92, 0.08, 0.92} },
+}
+
 local function onEnter(self)
 	if self.OnEnter then
 		self:OnEnter()
@@ -131,6 +147,37 @@ function buttonMixin:SetArtworkRotation(degrees)
 	if self.Artwork.SetRotation then
 		self.Artwork:SetRotation(math.rad(degrees or 0))
 	end
+end
+
+-- Lock / Switch button icon selection. The state tint applied in UpdateFeatures
+-- (gold/grey) layers on top of whichever texture is chosen here.
+local function applyIcon(button, iconTable, style, fallback)
+	if not button then return end
+	local icon = iconTable[style] or iconTable[fallback]
+	local tex = button:GetNormalTexture()
+	if not (icon and tex) then return end
+	tex:SetTexture(icon.texture)
+	if icon.coords then
+		tex:SetTexCoord(unpack(icon.coords))
+	else
+		tex:SetTexCoord(0, 1, 0, 1)
+	end
+end
+
+function buttonMixin:SetLockIcon(style)
+	applyIcon(self.LockButton, LOCK_ICONS, style, 'Padlock')
+end
+
+function buttonMixin:GetLockIcons()
+	return LOCK_ICONS
+end
+
+function buttonMixin:SetSwitchIcon(style)
+	applyIcon(self.SwitchButton, SWITCH_ICONS, style, 'Refresh')
+end
+
+function buttonMixin:GetSwitchIcons()
+	return SWITCH_ICONS
 end
 
 function buttonMixin:EnableUpdateRange(state)

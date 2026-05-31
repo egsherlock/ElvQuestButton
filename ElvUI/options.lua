@@ -26,6 +26,25 @@ function EQB:InsertOptions()
         table.sort(artworkSorting)
     end
 
+    -- Lock / Switch icon dropdowns (same pattern as the artwork dropdown).
+    local lockIconValues, lockIconSorting = {}, {}
+    if button and button.GetLockIcons then
+        for name in pairs(button:GetLockIcons()) do
+            lockIconValues[name] = name
+            table.insert(lockIconSorting, name)
+        end
+        table.sort(lockIconSorting)
+    end
+
+    local switchIconValues, switchIconSorting = {}, {}
+    if button and button.GetSwitchIcons then
+        for name in pairs(button:GetSwitchIcons()) do
+            switchIconValues[name] = name
+            table.insert(switchIconSorting, name)
+        end
+        table.sort(switchIconSorting)
+    end
+
     E.Options.args.elvQuestButton = {
         order = 6,
         type = 'group',
@@ -292,6 +311,37 @@ function EQB:InsertOptions()
                             self:UpdateButton()
                         end,
                         disabled = function() return (self:GetDB().itemCountBadge or 'NONE') == 'NONE' end,
+                    },
+                    toolsHeader = {
+                        order = 7,
+                        type = 'header',
+                        name = "Lock & Switch Buttons",
+                    },
+                    lockIconStyle = {
+                        order = 8,
+                        type = 'select',
+                        name = "Lock Icon",
+                        desc = "Which icon to use for the Lock button.",
+                        values = lockIconValues,
+                        sorting = lockIconSorting,
+                        get = function() return self:GetDB().lockIconStyle or 'Padlock' end,
+                        set = function(_, value)
+                            self:GetDB().lockIconStyle = value
+                            self:UpdateButton()
+                        end,
+                    },
+                    switchIconStyle = {
+                        order = 9,
+                        type = 'select',
+                        name = "Switch Icon",
+                        desc = "Which icon to use for the Switch button.",
+                        values = switchIconValues,
+                        sorting = switchIconSorting,
+                        get = function() return self:GetDB().switchIconStyle or 'Refresh' end,
+                        set = function(_, value)
+                            self:GetDB().switchIconStyle = value
+                            self:UpdateButton()
+                        end,
                     },
                     artworkHeader = {
                         order = 10,

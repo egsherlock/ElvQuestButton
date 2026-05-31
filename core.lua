@@ -42,6 +42,8 @@ addon.DEFAULTS = {
     autoLockOnUse = false,
     scrollToSwitch = true,
     lockOnSwitch = false,  -- false = soft-select (no persistent lock); true = hard-lock on switch
+    lockIconStyle = 'Padlock',
+    switchIconStyle = 'Refresh',
     itemCountBadge = 'SWITCH',
 }
 
@@ -453,6 +455,40 @@ function coreMixin:PLAYER_STOPPED_MOVING()
     -- instead of waiting for the next ticker cycle.
     if self.ScheduleUpdate then
         self:ScheduleUpdate()
+    end
+end
+
+-- Auto-lock by detecting the quest item's spell being cast, regardless of HOW
+-- it was used: our button, a bag click, a keybind, or the hover/right-click
+-- world interaction (e.g. lassoing a flying mob). Using an item casts its spell,
+-- so we match the cast spellID against the nearby quest items and lock the match.
+-- (Registered for the 'player' unit, so the first arg is always 'player'.)
+function coreMixin:UNIT_SPELLCAST_SUCCEEDED(_, _, spellID)
+    if self.editing or not spellID then
+        return
+    end
+
+    local settings = addon:GetCurrentSettings()
+    if not settings or settings.autoLockOnUse ~= true then
+        return
+    end
+
+    -- Locking is only meaningful with multiple items, and we never override an
+    -- existing lock.
+    if self.lockedItemLink then return end
+    if not self.lastNearbyItems or #self.lastNearbyItems <= 1 then return end
+
+    for _, link in ipairs(self.lastNearbyItems) do
+        local _, itemSpellID = C_Item.GetItemSpell(link)
+        if itemSpellID and itemSpellID == spellID then
+            self:SetLockedItem(link)
+            -- Immediate visual (UpdateState early-returns in combat).
+            if self.UpdateFeatures then
+                self:UpdateFeatures()
+            end
+            self:UpdateState()
+            return
+        end
     end
 end
 

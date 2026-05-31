@@ -78,3 +78,13 @@ A list of potential improvements identified during development. Items are marked
 - [x] **DONE (2026-05-31)**
 - **Problem**: README incorrectly claimed "MIT License"; the project is actually governed by p3lim's custom license (derivative works permitted, no standalone redistribution without permission).
 - **Fix**: Corrected the README License section, added a `NOTICE` file with full attribution, and put third-party-store distribution (CurseForge/Wago) on hold pending the author's written permission.
+
+### 13. Auto-Lock on Use — Detect Any Use Method
+- [x] **DONE (2026-05-31)**
+- **Problem**: Auto-Lock After Use only triggered via our button's `PostClick`, so using the item another way (bag click, keybind, or the hover/right-click world interaction — e.g. lassoing a flying mob) never locked it.
+- **Fix**: Added a `UNIT_SPELLCAST_SUCCEEDED` (player) handler that matches the cast `spellID` against nearby quest items' spells (`C_Item.GetItemSpell`) and hard-locks the match. Catches every use path that casts the item's spell. The original `PostClick` hook is retained as a fallback for the rare items that don't cast a spell.
+
+### 14. Selectable Lock / Switch Icons
+- [x] **DONE (2026-05-31)**
+- **Problem**: The Lock and Switch button icons were hardcoded.
+- **Fix**: Added `LOCK_ICONS` (Padlock, GoldLock, LockIcon, Key) and `SWITCH_ICONS` (Refresh, Rotate, Cycle) tables with `SetLockIcon`/`SetSwitchIcon` helpers, plus `lockIconStyle`/`switchIconStyle` settings and dropdowns in both the ElvUI panel and standalone Edit Mode. The gold/grey state tint still layers on top.
