@@ -321,7 +321,7 @@ function EQB:UpdateButton()
     end
 
     -- Lock / Switch button icons
-    if button.SetLockIcon then button:SetLockIcon(db.lockIconStyle or 'GoldLock') end
+    if button.SetLockIcon then button:SetLockIcon(db.lockIconStyle or 'Padlock') end
     if button.SetSwitchIcon then button:SetSwitchIcon(db.switchIconStyle or 'Refresh') end
 
     -- Artwork (optional background layer behind the ElvUI skin)

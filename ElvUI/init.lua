@@ -35,7 +35,7 @@ local moduleDefaults = {
     autoLockOnUse = false,
     scrollToSwitch = true,
     lockOnSwitch = false,      -- false = soft-select; true = hard-lock when scrolling/switching
-    lockIconStyle = 'GoldLock',
+    lockIconStyle = 'Padlock',
     switchIconStyle = 'Refresh',
     
     -- Fonts & Text

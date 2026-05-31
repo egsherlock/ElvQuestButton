@@ -44,8 +44,8 @@ local ART_STYLES = {
 -- Selectable icons for the Lock / Switch buttons. Each entry is either a
 -- `texture` path (with optional `coords` trim for square Icon-folder art) or an
 -- `atlas` name (resolved at apply-time, with a `texture` fallback if the atlas
--- isn't present on this client). Curated to clean, reliable Blizzard art; the
--- gold action-bar padlock is the default.
+-- isn't present on this client). Curated to clean, reliable Blizzard art.
+-- Defaults: Padlock (lock) and Refresh (switch).
 local LOCK_ICONS = {
 	GoldLock = { texture = [[Interface\Buttons\LockButton-Locked-Up]] },                              -- clean gold UI padlock
 	Padlock  = { texture = [[Interface\PetBattles\PetBattle-LockIcon]], coords = {0.05, 0.95, 0.05, 0.95} },
@@ -175,7 +175,7 @@ local function applyIcon(button, iconTable, style, fallback)
 end
 
 function buttonMixin:SetLockIcon(style)
-	applyIcon(self.LockButton, LOCK_ICONS, style, 'GoldLock')
+	applyIcon(self.LockButton, LOCK_ICONS, style, 'Padlock')
 end
 
 function buttonMixin:GetLockIcons()
