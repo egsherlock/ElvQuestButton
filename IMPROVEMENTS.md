@@ -40,9 +40,10 @@ A list of potential improvements identified during development. Items are marked
 - **Fix**: Add locale entries and reference them.
 
 ### 6. Keep `data.lua` in Sync with Upstream
-- [ ] TODO (ongoing)
+- [x] **DONE (2026-05-31)** — ongoing; re-check periodically
 - **Problem**: p3lim still actively maintains ExtraQuestButton and adds new quest/item entries. Our `data.lua` is a snapshot from the initial fork.
 - **Fix**: Periodically diff against [p3lim's data.lua](https://github.com/p3lim-wow/ExtraQuestButton/blob/master/data.lua) and merge new entries.
+- **Last sync (2026-05-31)**: merged the only two upstream additions since the fork — `targetItems[36231] = 49202` (Gilneas) and the four Noblegarden `inaccurateQuestAreas` entries (`79331/79578/79330/79577`). All other tables were identical.
 
 ### 7. Debounce Scroll-to-Switch
 - [x] **DONE**

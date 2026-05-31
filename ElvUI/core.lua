@@ -158,19 +158,27 @@ function EQB:SkinButton(button)
     
     Debug("Skinning button")
     
-    -- Hide all original textures except Icon
+    -- Hide all original textures except Icon and Artwork.
+    -- Artwork is kept and re-layered below as an optional background (see below);
+    -- its visibility is driven by the artwork settings in UpdateButton.
     local regionsToHide = {
-        button.Artwork,
         button:GetNormalTexture(),
         button:GetPushedTexture(),
         button:GetHighlightTexture(),
     }
-    
+
     for _, region in ipairs(regionsToHide) do
         if region then
             region:SetAlpha(0)
             region:Hide()
         end
+    end
+
+    -- Re-layer the ExtraButton artwork as a background that sits BEHIND the
+    -- ElvUI square skin. The icon (ARTWORK, -1) and backdrop child-frame render
+    -- on top; the 256x128 art extends past the button as decorative framing.
+    if button.Artwork then
+        button.Artwork:SetDrawLayer('BACKGROUND', -8)
     end
     
     -- Remove masks from icon
@@ -220,6 +228,15 @@ function EQB:SkinButton(button)
     -- Register cooldown with ElvUI
     if button.Cooldown and E.RegisterCooldown then
         E:RegisterCooldown(button.Cooldown, 'actionbar')
+    end
+
+    -- Re-anchor the cooldown swirl to the skinned icon. The button.lua default
+    -- insets (4px/3px) were tuned for the original Blizzard frame art; once
+    -- ElvUI makes the icon fill the button, those insets leave the swirl ~4px
+    -- short on every edge. Matching the icon makes it cover edge-to-edge.
+    if button.Cooldown and button.Icon then
+        button.Cooldown:ClearAllPoints()
+        button.Cooldown:SetAllPoints(button.Icon)
     end
     
     -- Skin Features Frame Buttons
@@ -302,6 +319,12 @@ function EQB:UpdateButton()
     if button.EnableCooldownText then
         button:EnableCooldownText(not db.noCooldownText)
     end
+
+    -- Artwork (optional background layer behind the ElvUI skin)
+    if button.SetArtworkStyle then
+        button:SetArtworkStyle(db.artworkStyle or 'Default')
+        button:SetArtworkAlpha(db.artworkEnabled and (db.artworkAlpha or 1) or 0)
+    end
     
     -- Fonts & Text
     local LSM = E.Libs.LSM
@@ -363,11 +386,16 @@ function EQB:OnButtonShow(button)
         self:SkinButton(button)
     end
     
-    -- Keep textures hidden
+    -- Re-apply artwork visibility from settings (a re-show must not reset it).
+    -- UpdateButton owns the actual style/alpha values; here we just make sure a
+    -- freshly shown button reflects the current DB rather than a stale alpha.
     if button.Artwork then
-        button.Artwork:SetAlpha(0)
+        local db = self:GetDB()
+        if db then
+            button.Artwork:SetAlpha(db.artworkEnabled and (db.artworkAlpha or 1) or 0)
+        end
     end
-    
+
     if button.Icon then
         button.Icon:SetAlpha(1)
         button.Icon:Show()

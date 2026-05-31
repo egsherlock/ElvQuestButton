@@ -13,7 +13,19 @@ local EQB = addon.ElvUIModule
 
 function EQB:InsertOptions()
     local button = _G.ElvQuestButton or _G[addonName]
-    
+
+    -- Build the artwork style dropdown from the button's ART_STYLES table.
+    -- values: key -> display name; sorting: alphabetical key list (Ace3 'sorting'
+    -- as a key array is safe; sorting = "key" crashes Ace3, see itemCountBadge).
+    local artworkValues, artworkSorting = {}, {}
+    if button and button.GetArtworkStyles then
+        for name in pairs(button:GetArtworkStyles()) do
+            artworkValues[name] = name
+            table.insert(artworkSorting, name)
+        end
+        table.sort(artworkSorting)
+    end
+
     E.Options.args.elvQuestButton = {
         order = 6,
         type = 'group',
@@ -262,6 +274,50 @@ function EQB:InsertOptions()
                             self:UpdateButton()
                         end,
                         disabled = function() return (self:GetDB().itemCountBadge or 'NONE') == 'NONE' end,
+                    },
+                    artworkHeader = {
+                        order = 10,
+                        type = 'header',
+                        name = "Artwork Background",
+                    },
+                    artworkEnabled = {
+                        order = 11,
+                        type = 'toggle',
+                        name = "Show Artwork Background",
+                        desc = "Draw the classic ExtraButton artwork frame behind the button. The ElvUI skin stays on top; the artwork extends past the button as decorative framing.",
+                        get = function() return self:GetDB().artworkEnabled end,
+                        set = function(_, value)
+                            self:GetDB().artworkEnabled = value
+                            self:UpdateButton()
+                        end,
+                    },
+                    artworkStyle = {
+                        order = 12,
+                        type = 'select',
+                        name = "Artwork Style",
+                        desc = "Which ExtraButton artwork frame to show behind the button.",
+                        values = artworkValues,
+                        sorting = artworkSorting,
+                        get = function() return self:GetDB().artworkStyle or 'Default' end,
+                        set = function(_, value)
+                            self:GetDB().artworkStyle = value
+                            self:UpdateButton()
+                        end,
+                        disabled = function() return not self:GetDB().artworkEnabled end,
+                    },
+                    artworkAlpha = {
+                        order = 13,
+                        type = 'range',
+                        name = "Artwork Opacity",
+                        desc = "Opacity of the artwork background.",
+                        min = 0, max = 1, step = 0.05,
+                        isPercent = true,
+                        get = function() return self:GetDB().artworkAlpha end,
+                        set = function(_, value)
+                            self:GetDB().artworkAlpha = value
+                            self:UpdateButton()
+                        end,
+                        disabled = function() return not self:GetDB().artworkEnabled end,
                     },
                 },
             },

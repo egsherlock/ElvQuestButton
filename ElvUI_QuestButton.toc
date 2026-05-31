@@ -1,12 +1,11 @@
-## Interface: 120000, 120001
+## Interface: 120000, 120001, 120005
 ## Author: p3lim (ElvUI integration by Sherlockell)
 ## Version: 1.0.0
 ## Title: |cff1784d1ElvUI|r |cff33D9CCQuest|cff33FF99Button|r
 ## Notes: Quest item button with ElvUI integration
 ## IconTexture: Interface\Icons\inv_gizmo_goblingtonkcontroller
 ## SavedVariables: ElvQuestButtonDB
-## RequiredDeps: ElvUI
-## OptionalDeps: LibStub, HereBeDragons, Masque, ElvUI_WindTools
+## OptionalDeps: ElvUI, LibStub, HereBeDragons, Masque, ElvUI_WindTools
 
 ## X-Curse-Project-ID: 88865
 ## X-WoWI-ID: 23464
